@@ -1,0 +1,243 @@
+/*
+  Placeholder accessibility-first styling for the Agent Portal.
+  Ruchir owns the real shared UI kit (per blueprint) — swap these
+  tokens out for his classes/components when they land. Kept
+  deliberately simple so that swap is a find-and-replace, not a rewrite.
+*/
+
+:root {
+  --color-bg: #f4f6f5;
+  --color-surface: #ffffff;
+  --color-text: #1a1a1a;
+  --color-primary: #0b6e4f;
+  --color-primary-dark: #08543c;
+  --color-danger: #b3261e;
+  --color-success: #1e7d3c;
+  --color-border: #d8dedb;
+  --focus-ring: #0b6e4f;
+  --font-size-base: 20px;
+  --font-size-large: 28px;
+  --font-size-xl: 36px;
+  --touch-target: 64px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+  font-size: var(--font-size-base);
+}
+
+.app-shell {
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100vh;
+  background: var(--color-surface);
+  display: flex;
+  flex-direction: column;
+}
+
+.app-header {
+  padding: 20px 24px;
+  border-bottom: 2px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.app-header h1 {
+  font-size: var(--font-size-large);
+  margin: 0;
+}
+
+.app-nav {
+  display: flex;
+  gap: 8px;
+  padding: 16px 24px;
+  border-bottom: 2px solid var(--color-border);
+  flex-wrap: wrap;
+}
+
+.nav-link {
+  flex: 1;
+  min-width: 100px;
+  text-align: center;
+  padding: 14px 8px;
+  border-radius: 12px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 18px;
+  color: var(--color-text);
+  background: var(--color-bg);
+  border: 2px solid var(--color-border);
+}
+
+.nav-link.active {
+  background: var(--color-primary);
+  color: white;
+  border-color: var(--color-primary);
+}
+
+.screen {
+  padding: 24px;
+  flex: 1;
+}
+
+.screen h2 {
+  font-size: var(--font-size-large);
+  margin-top: 0;
+}
+
+.field {
+  margin-bottom: 20px;
+}
+
+.field label {
+  display: block;
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.field input,
+.field select {
+  width: 100%;
+  padding: 16px;
+  font-size: var(--font-size-base);
+  border: 2px solid var(--color-border);
+  border-radius: 12px;
+  min-height: var(--touch-target);
+}
+
+.field input:focus,
+.field select:focus,
+button:focus-visible,
+a:focus-visible {
+  outline: 4px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: var(--touch-target);
+  font-size: var(--font-size-base);
+  font-weight: 700;
+  border-radius: 14px;
+  border: none;
+  cursor: pointer;
+  padding: 16px;
+  margin-top: 8px;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: var(--color-primary);
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--color-primary-dark);
+}
+
+.btn-danger {
+  background: var(--color-danger);
+  color: white;
+}
+
+.btn-secondary {
+  background: var(--color-bg);
+  color: var(--color-text);
+  border: 2px solid var(--color-border);
+}
+
+.result-card {
+  margin-top: 24px;
+  padding: 20px;
+  border-radius: 16px;
+  border: 2px solid var(--color-border);
+}
+
+.result-card.success {
+  background: #eaf6ee;
+  border-color: var(--color-success);
+}
+
+.result-card.failure {
+  background: #fbeceb;
+  border-color: var(--color-danger);
+}
+
+.result-title {
+  font-size: var(--font-size-large);
+  font-weight: 800;
+  margin: 0 0 8px 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.result-title.success { color: var(--color-success); }
+.result-title.failure { color: var(--color-danger); }
+
+.result-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 18px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.result-row:last-child {
+  border-bottom: none;
+}
+
+.qr-box {
+  margin-top: 20px;
+  text-align: center;
+  padding: 20px;
+  border: 2px dashed var(--color-border);
+  border-radius: 16px;
+}
+
+.qr-box img {
+  width: 220px;
+  height: 220px;
+  image-rendering: pixelated;
+}
+
+.qr-caption {
+  margin-top: 12px;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.helper-text {
+  font-size: 16px;
+  color: #55605c;
+  margin-top: 6px;
+}
+
+.badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.badge.active { background: #eaf6ee; color: var(--color-success); }
+.badge.blocked { background: #fbeceb; color: var(--color-danger); }

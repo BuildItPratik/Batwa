@@ -2,7 +2,7 @@
 
 > This file is the living memory of the project. Every significant action, decision, and milestone is logged here so any team member (or AI agent) can pick up exactly where things left off.
 
-**Last updated:** 2026-08-27, 10:34 PM IST
+**Last updated:** 2026-08-27, 11:20 PM IST
 
 ---
 
@@ -88,6 +88,46 @@
 
 ---
 
+### Phase 0 — Agent Portal (Pratik) ✅ COMPLETE
+
+**Date:** Aug 27, 2026
+
+#### 1. Project Structure
+- Added a `frontend/` folder to the repo, containing the `agent-portal/` React (Vite) app
+- Structure:
+  ```
+  frontend/agent-portal/
+  ├── index.html, vite.config.js, package.json, .env.example
+  └── src/
+      ├── App.jsx, main.jsx
+      ├── api/agentApi.js
+      ├── pages/ (RegisterCustomer.jsx, TopUp.jsx, BlockReissue.jsx)
+      └── styles/global.css
+  ```
+- Runs standalone on `http://localhost:5173`, independent of the other portals for now (see integration note below)
+
+#### 2. Screens Built
+- **`/agent/register`** — customer registration form (name, phone, 4-digit PIN, language preference) → displays the generated QR card, large and printable
+- **`/agent/topup`** — enter/scan `card_id` + cash amount → confirm → shows updated customer balance and the agent's remaining float
+- **`/agent/manage`** — search a customer, block their card (with a confirm step), or reissue a new card with balance carried over
+
+#### 3. Backend Integration
+- `src/api/agentApi.js` is the single source of truth for all backend calls — wired to Harsh's **real** endpoints, not mocks
+- Uses the updated contract from Decision 1 (`card_id`, not `customer_id`, in register/topup/block/reissue requests)
+- Handles both transport failures and business-logic failures (`status: "FAILED"` with a `failure_reason`) through one consistent `ApiError` type, so failure handling stays uniform across all three screens
+
+#### 4. Styling
+- `src/styles/global.css` is a plain, high-contrast, large-touch-target placeholder (64px min touch targets, visible focus rings, no framework dependency)
+- Intentionally built to be a class-name swap, not a rewrite, once Ruchir's shared UI kit lands
+
+#### 5. Open Items Raised by Pratik (need team input)
+- ⚠️ **`/wallet/balance/{id}` contract is ambiguous.** Decision 1 renamed the ID field to `card_id` for register/topup/pay/block/reissue, but never said whether this GET endpoint was repointed too, or still expects `customer_id`. Not blocking for the Agent Portal today (topup/reissue responses already return the new balance directly), but Ruchir's admin dashboard and Atharva's receipts will likely call this endpoint — **Harsh needs to confirm and document which ID it expects before someone guesses wrong.**
+- QR scanning on the top-up screen is currently manual text entry only (blueprint calls for scan-or-enter). Plan is to reuse Krishna's `html5-qrcode` integration once the Merchant Portal builds it, rather than duplicating the component.
+- No agent login/session yet — `agent_id` is a plain text field defaulting to `AGT-001`. Fine for the demo; flagging so the team explicitly agrees we're not building agent auth in scope.
+- This repo currently runs its own standalone `<BrowserRouter>` with only `/agent/*` routes. Per the blueprint, Day 4 merge should nest these three `<Route>`s under the shared app's `/agent` path instead of keeping a separate router.
+
+---
+
 ## Architecture Decisions Log
 
 ### Decision 1: Card/Customer Separation
@@ -99,7 +139,8 @@
   - `customer_id` → `card_id` in topup, pay, and block request bodies
   - Register response now includes both `customer_id` and `card_id`
   - Reissue response returns `new_card_id` instead of `new_customer_id`
-- **Action needed:** ⚠️ Harsh must communicate these field name changes to Pratik, Krishna, Ruchir, and Atharva at the Day 1 sync.
+- **Action needed:** ⚠️ Harsh must communicate these field name changes to Pratik, Krishna, Ruchir, and Atharva at the Day 1 sync. **(Done for Pratik — Agent Portal is built against the updated contract.)**
+- **Still open:** Decision 1 doesn't state whether `GET /wallet/balance/{id}` takes `card_id` or `customer_id` now. See "Open Items Raised by Pratik" above — needs Harsh to close this out.
 
 ### Decision 2: Rs.100 Limit Scope
 - **Date:** Aug 27, 2026
@@ -119,19 +160,23 @@
 
 ### Harsh — Remaining Tasks
 - [ ] Communicate API contract changes (card_id separation) to team at Day 1 sync
+- [ ] **New:** Confirm and document whether `GET /wallet/balance/{id}` expects `card_id` or `customer_id` (raised by Pratik — blocks Ruchir/Atharva if left unresolved)
 - [ ] Support frontend team with any backend integration issues
 - [ ] Add CORS origin restrictions before production deploy (currently allows `*`)
 - [ ] Warm up backend before demo (Render free tier cold starts)
 - [ ] Prepare architecture summary for the pitch closing
 
-### Pratik — Agent Portal (Frontend)
-- [ ] Set up React project with routes (`/agent`)
-- [ ] Build customer registration form (name, phone, 4-digit PIN, language preference)
-- [ ] Display QR code on successful registration (large, printable)
-- [ ] Build top-up screen: scan/enter card_id, enter amount, confirm
-- [ ] Show updated customer balance and agent's remaining float after topup
-- [ ] Build block/reissue screen: search customer, block/reissue buttons
-- [ ] Wire to real backend endpoints (use `card_id` in requests, not `customer_id`)
+### Pratik — Agent Portal (Frontend) ✅ COMPLETE
+- [x] Set up React project with routes (`/agent`)
+- [x] Build customer registration form (name, phone, 4-digit PIN, language preference)
+- [x] Display QR code on successful registration (large, printable)
+- [x] Build top-up screen: scan/enter card_id, enter amount, confirm
+- [x] Show updated customer balance and agent's remaining float after topup
+- [x] Build block/reissue screen: search customer, block/reissue buttons
+- [x] Wire to real backend endpoints (use `card_id` in requests, not `customer_id`)
+- [ ] Swap `global.css` placeholder for Ruchir's shared UI kit once it lands
+- [ ] Reuse Krishna's `html5-qrcode` component for scan-based card entry on the top-up screen
+- [ ] Day 4: nest `/agent/*` routes under the shared app instead of the standalone router
 
 ### Krishna — Merchant Portal (Frontend)
 - [ ] Set up React routes (`/merchant`)
@@ -159,6 +204,7 @@
   - Live transaction feed from `GET /transactions`
   - Running totals: total cash converted to digital, active cards, blocked cards
 - [ ] Ensure success/failure distinguishable by color, icon, AND sound (not text alone)
+- [ ] **Note:** if the admin dashboard needs balance lookups by ID, confirm with Harsh whether `GET /wallet/balance/{id}` takes `card_id` or `customer_id` (see open item above) before building against it
 
 ### Atharva — Backend Support + QA + Deployment
 - [ ] Build receipt generation (PDF via `reportlab` or browser print view)
@@ -169,9 +215,11 @@
   - Frontend on Vercel
 - [ ] Test deployed endpoints
 - [ ] Support Harsh on any backend bug triage
+- [ ] **Note:** if receipts need balance lookups by ID, confirm with Harsh whether `GET /wallet/balance/{id}` takes `card_id` or `customer_id` (see open item above) before building against it
 
 ### Phase 2 — Integration (Day 4, whole team)
 - [ ] Connect all portals + admin to deployed backend (not localhost)
+- [ ] Merge Pratik's standalone `agent-portal` router into the shared app under `/agent`
 - [ ] Run full flow: register → topup → pay → admin dashboard → receipt
 - [ ] Test all failure paths deliberately
 - [ ] Fix integration bugs
@@ -202,6 +250,16 @@ python -m uvicorn main:app --reload --port 8000
 # Run tests: python test_endpoints.py (while server is running)
 ```
 
+## How to Run the Agent Portal
+
+```bash
+cd frontend/agent-portal
+npm install
+cp .env.example .env       # point VITE_API_BASE_URL at Harsh's backend
+npm run dev                # runs on http://localhost:5173
+```
+Requires the backend running first (see above).
+
 ---
 
 ## Important Notes for AI Agents
@@ -210,8 +268,9 @@ If you are an AI agent picking up this project for a team member:
 
 1. **Read the blueprint first:** `tapwallet-implementation-blueprint.md` is the source of truth for overall scope
 2. **Read this MEMORY.md:** for what's actually been built and what's changed from the blueprint
-3. **API contract has changed** from the blueprint — use `card_id` (not `customer_id`) in topup/pay/block requests
+3. **API contract has changed** from the blueprint — use `card_id` (not `customer_id`) in topup/pay/block requests. **The `GET /wallet/balance/{id}` field is still unresolved — check the open item under Decision 1 before assuming either way.**
 4. **Backend is fully operational** at `http://localhost:8000` — you can test against it immediately
-5. **Seed data PINs are all `1234`** — use `CARD-TEST01` through `CARD-TEST05` for testing
-6. **Don't rename API fields** — the field names in `models.py` are final. If you need a change, update this MEMORY.md and notify the team.
-7. **The `failure_reason` value set is closed** — only use the values documented in the README. Don't invent new ones.
+5. **Agent Portal is fully operational** at `http://localhost:5173` (after `npm install` + `.env` setup) — wired to the real backend, not mocks
+6. **Seed data PINs are all `1234`** — use `CARD-TEST01` through `CARD-TEST05` for testing
+7. **Don't rename API fields** — the field names in `models.py` are final. If you need a change, update this MEMORY.md and notify the team.
+8. **The `failure_reason` value set is closed** — only use the values documented in the README. Don't invent new ones.
