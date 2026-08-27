@@ -1,5 +1,5 @@
 """
-TapWallet — Pydantic request/response models
+Batwa — Pydantic request/response models
 Field names match the API contract exactly. Do not rename.
 """
 

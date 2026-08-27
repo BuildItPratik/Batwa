@@ -1,5 +1,5 @@
 """
-TapWallet — Card Management Routes
+Batwa — Card Management Routes
 POST /cards/block
 POST /cards/reissue
 """

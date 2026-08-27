@@ -1,5 +1,5 @@
 """
-TapWallet — PIN Service
+Batwa — PIN Service
 bcrypt-based PIN hashing and verification.
 """
 

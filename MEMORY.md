@@ -1,4 +1,4 @@
-# TapWallet — Project Memory
+# Batwa — Project Memory
 
 > This file is the living memory of the project. Every significant action, decision, and milestone is logged here so any team member (or AI agent) can pick up exactly where things left off.
 
@@ -8,7 +8,7 @@
 
 ## Project Overview
 
-- **Project:** TapWallet — Non-Mobile Digital Payment System
+- **Project:** Batwa — Non-Mobile Digital Payment System
 - **Event:** Cognizant NPN Nurture Program Hackathon (5-day build)
 - **Repo:** `BuildItPratik/Batwa` on GitHub
 - **Team:** Harsh (backend lead), Pratik (agent portal), Krishna (merchant portal), Ruchir (accessibility + admin), Atharva (backend support + QA)

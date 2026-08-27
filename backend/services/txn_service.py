@@ -1,5 +1,5 @@
 """
-TapWallet — Transaction Service
+Batwa — Transaction Service
 Core wallet logic: atomic top-ups and payments.
 
 Every operation wraps all reads + writes in a single SQLite transaction

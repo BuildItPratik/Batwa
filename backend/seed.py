@@ -1,5 +1,5 @@
 """
-TapWallet — Seed Script
+Batwa — Seed Script
 Populates the database with test data for development and team testing.
 
 Run: python seed.py

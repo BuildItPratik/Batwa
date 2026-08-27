@@ -1,5 +1,5 @@
 """
-TapWallet — FastAPI Application Entry Point
+Batwa — FastAPI Application Entry Point
 Initializes the database, registers all routes, and configures CORS.
 """
 
@@ -33,7 +33,7 @@ async def lifespan(app: FastAPI):
 # ---------------------------------------------------------------------------
 
 app = FastAPI(
-    title="TapWallet API",
+    title="Batwa API",
     description="Non-mobile digital payment system — Cognizant NPN Nurture Program",
     version="1.0.0",
     lifespan=lifespan,
@@ -58,7 +58,7 @@ app.include_router(transactions_router)
 # Health check
 @app.get("/", tags=["Health"])
 def health_check():
-    return {"status": "ok", "service": "TapWallet API", "version": "1.0.0"}
+    return {"status": "ok", "service": "Batwa API", "version": "1.0.0"}
 
 
 # ---------------------------------------------------------------------------

@@ -42,7 +42,7 @@ def check(name, condition, detail=""):
 
 
 print("=" * 60)
-print("TapWallet API Integration Tests")
+print("Batwa API Integration Tests")
 print("=" * 60)
 
 # ── 1. Register a new customer ─────────────────────────────

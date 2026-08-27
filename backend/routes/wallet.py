@@ -1,5 +1,5 @@
 """
-TapWallet — Wallet Routes
+Batwa — Wallet Routes
 POST /wallet/topup
 POST /wallet/pay
 GET  /wallet/balance/{customer_id}

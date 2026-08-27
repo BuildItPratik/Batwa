@@ -1,4 +1,4 @@
-# TapWallet
+# Batwa
 
 **Non-Mobile Digital Payment System** — Cognizant NPN Nurture Program Hackathon
 
@@ -12,7 +12,7 @@ Millions of people in India — daily-wage workers, elderly citizens, rural resi
 
 ## Our Solution
 
-**TapWallet** bridges this gap with a simple 3-step flow:
+**Batwa** bridges this gap with a simple 3-step flow:
 
 1. **Get a Card** — A customer visits a local Agent (neighborhood recharge shop), provides basic info, and receives a printed QR card
 2. **Load Cash** — The customer hands cash to the Agent, who digitally loads that amount onto the card's balance
@@ -61,7 +61,7 @@ Batwa/
 │       ├── qr_service.py        # QR code generation (base64 PNG)
 │       └── txn_service.py       # Atomic transaction engine
 ├── frontend/                    # React app (Pratik, Krishna, Ruchir)
-├── tapwallet-implementation-blueprint.md
+├── tapwallet-implementation-blueprint.md  # Original blueprint (kept as-is)
 ├── MEMORY.md                    # Project progress tracker
 └── README.md
 ```

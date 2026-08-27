@@ -1,5 +1,5 @@
 """
-TapWallet — Transaction History Route
+Batwa — Transaction History Route
 GET /transactions
 """
 

@@ -1,5 +1,5 @@
 """
-TapWallet — Customer Registration Route
+Batwa — Customer Registration Route
 POST /customers/register
 """
 

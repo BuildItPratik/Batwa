@@ -1,5 +1,5 @@
 """
-TapWallet — Database layer
+Batwa — Database layer
 SQLite schema creation, connection management, and atomic transaction support.
 """
 
@@ -8,7 +8,7 @@ import os
 from contextlib import contextmanager
 
 # Database file lives next to this script
-DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "tapwallet.db")
+DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "batwa.db")
 
 # ---------------------------------------------------------------------------
 # Schema — 5 tables

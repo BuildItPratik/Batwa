@@ -1,5 +1,5 @@
 """
-TapWallet — QR Code Service
+Batwa — QR Code Service
 Generates QR code PNGs encoded as base64 strings.
 """
 
