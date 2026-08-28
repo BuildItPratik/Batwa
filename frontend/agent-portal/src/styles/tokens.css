@@ -1,0 +1,41 @@
+:root {
+  /* Shared Batwa semantic tokens. Components consume these names rather than
+     carrying role-specific colour values in their JSX. */
+  --batwa-color-surface: #fffdf7;
+  --batwa-color-surface-soft: #f5ebd7;
+  --batwa-color-ink: #2b2118;
+  --batwa-color-indigo: #082a45;
+  --batwa-color-terracotta: #ad4028;
+  --batwa-color-turmeric: #d99b2b;
+  --batwa-color-leaf: #356447;
+  --batwa-color-error: #a33b32;
+  --batwa-color-border: #d7c5a3;
+  --batwa-font-display: 'Noto Serif Devanagari', Georgia, serif;
+  --batwa-font-body: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --batwa-focus-ring: 3px solid #d99b2b;
+  --batwa-paper: #fffdf7;
+  --batwa-paper-deep: #f5ebd7;
+  --batwa-ink: #2b2118;
+  --batwa-ink-muted: #6d5c4b;
+  --batwa-terracotta: #a8442a;
+  --batwa-terracotta-dark: #7d2f20;
+  --batwa-turmeric: #d99b2b;
+  --batwa-indigo: #29445f;
+  --batwa-leaf: #356447;
+  --batwa-error: #a33b32;
+  --batwa-border: #d7c5a3;
+  --batwa-shadow: 0 18px 50px rgb(71 45 25 / 12%);
+  --batwa-shadow-soft: 0 5px 18px rgb(71 45 25 / 10%);
+  --batwa-radius-sm: 8px;
+  --batwa-radius-md: 14px;
+  --batwa-radius-lg: 22px;
+  --batwa-space-1: 0.25rem;
+  --batwa-space-2: 0.5rem;
+  --batwa-space-3: 0.75rem;
+  --batwa-space-4: 1rem;
+  --batwa-space-5: 1.5rem;
+  --batwa-space-6: 2rem;
+  --batwa-space-7: 3rem;
+  --batwa-focus: #174f75;
+  --batwa-motion: 180ms ease;
+}
