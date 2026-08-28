@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { blockCard, reissueCard, ApiError } from '../api/agentApi.js'
+import { Button, FormField, PortalFrame, StatusPanel } from '../components/ui/index.js'
 
 export default function BlockReissue() {
   const [cardId, setCardId] = useState('')
@@ -10,228 +11,39 @@ export default function BlockReissue() {
   const [blockResult, setBlockResult] = useState(null)
   const [reissueResult, setReissueResult] = useState(null)
 
-  function resetResults() {
-    setError(null)
-    setBlockResult(null)
-    setReissueResult(null)
-  }
-
+  function resetResults() { setError(null); setBlockResult(null); setReissueResult(null) }
   async function handleBlock() {
-    resetResults()
-
-    if (!cardId.trim()) {
-      setError('Enter the card ID to block.')
-      return
-    }
-
+    resetResults(); if (!cardId.trim()) { setError('Enter the card ID to block.'); return }
     setSubmitting(true)
-
-    try {
-      const data = await blockCard({
-        cardId: cardId.trim(),
-      })
-
-      setBlockResult(data)
-      setConfirmingBlock(false)
-      setCardId('')
-    } catch (err) {
-      setError(
-        err instanceof ApiError
-          ? err.message
-          : 'Something went wrong.'
-      )
-    } finally {
-      setSubmitting(false)
-    }
+    try { const data = await blockCard({ cardId: cardId.trim() }); setBlockResult(data); setConfirmingBlock(false); setCardId('') }
+    catch (err) { setError(err instanceof ApiError ? err.message : 'Something went wrong.') }
+    finally { setSubmitting(false) }
   }
-
   async function handleReissue() {
-    resetResults()
-
-    if (!customerId.trim()) {
-      setError('Enter the customer ID to reissue the card.')
-      return
-    }
-
+    resetResults(); if (!customerId.trim()) { setError('Enter the customer ID to reissue the card.'); return }
     setSubmitting(true)
-
-    try {
-      const data = await reissueCard({
-        customerId: customerId.trim(),
-      })
-
-      setReissueResult(data)
-      setCustomerId('')
-    } catch (err) {
-      setError(
-        err instanceof ApiError
-          ? err.message
-          : 'Something went wrong.'
-      )
-    } finally {
-      setSubmitting(false)
-    }
+    try { const data = await reissueCard({ customerId: customerId.trim() }); setReissueResult(data); setCustomerId('') }
+    catch (err) { setError(err instanceof ApiError ? err.message : 'Something went wrong.') }
+    finally { setSubmitting(false) }
   }
 
   return (
-    <div className="screen">
-      <h2>Block or Reissue Card</h2>
-
-      {/* BLOCK CARD */}
-      <div className="field">
-        <label htmlFor="manageCardId">Card ID</label>
-
-        <input
-          id="manageCardId"
-          type="text"
-          placeholder="CARD-XXXXXX"
-          value={cardId}
-          onChange={(e) => {
-            setCardId(e.target.value)
-            setConfirmingBlock(false)
-          }}
-          autoComplete="off"
-        />
+    <PortalFrame eyebrow="Agent Centre · Manage card" title="Keep cards safe" description="Block a lost card immediately, or issue a new card while the customer’s balance stays with them." className="agent-flow-panel">
+      <div className="manage-grid">
+        <section className="manage-action manage-danger">
+          <p className="batwa-eyebrow">Lost or compromised</p><h2>Block a card</h2><p>Payments stop immediately. The customer’s balance is not lost.</p>
+          <FormField id="manageCardId" label="Card ID"><input type="text" placeholder="CARD-XXXXXX" value={cardId} onChange={(e) => { setCardId(e.target.value); setConfirmingBlock(false) }} autoComplete="off" /></FormField>
+          {!confirmingBlock ? <Button variant="danger" onClick={() => { resetResults(); if (!cardId.trim()) setError('Enter the card ID to block.'); else setConfirmingBlock(true) }} disabled={submitting}>Block this card</Button> : <div className="confirmation-panel"><strong>Confirm blocking {cardId}</strong><p>This cannot be undone for the active card. A new card can be issued separately.</p><div className="merchant-actions"><Button variant="danger" onClick={handleBlock} disabled={submitting}>{submitting ? 'Blocking…' : 'Yes, block card'}</Button><Button variant="secondary" onClick={() => setConfirmingBlock(false)} disabled={submitting}>Cancel</Button></div></div>}
+          {blockResult && <StatusPanel variant="success" title="Card blocked"><p>Card status: <strong>{blockResult.card_status}</strong></p></StatusPanel>}
+        </section>
+        <section className="manage-action">
+          {!reissueResult && <><p className="batwa-eyebrow">New card, same wallet</p><h2>Reissue a card</h2><p>All active cards are blocked and a fresh QR card carries the balance over.</p>
+            <FormField id="manageCustomerId" label="Customer ID"><input type="text" placeholder="CUST-XXXXXX" value={customerId} onChange={(e) => setCustomerId(e.target.value)} autoComplete="off" /></FormField>
+            <Button variant="secondary" onClick={handleReissue} disabled={submitting}>{submitting ? 'Issuing…' : 'Reissue new card'}</Button></>}
+          {reissueResult && <><p className="batwa-eyebrow">New card, same wallet</p><h2>New card issued</h2><div className="qr-card qr-card-small"><StatusPanel variant="success" title="Balance carried over"><p>₹{reissueResult.balance_carried_over}</p></StatusPanel>{reissueResult.qr_code_base64 && <img src={`data:image/png;base64,${reissueResult.qr_code_base64}`} alt={`QR card for ${reissueResult.new_card_id}`} />}<strong>{reissueResult.new_card_id}</strong><Button variant="quiet" onClick={() => window.print()}>Print card</Button></div></>}
+        </section>
       </div>
-
-      {error && (
-        <div className="result-card failure">
-          <p className="result-title failure">✕ Action Failed</p>
-          <p>{error}</p>
-        </div>
-      )}
-
-      {!confirmingBlock ? (
-        <button
-          className="btn btn-danger"
-          type="button"
-          onClick={() => {
-            resetResults()
-
-            if (!cardId.trim()) {
-              setError('Enter the card ID to block.')
-              return
-            }
-
-            setConfirmingBlock(true)
-          }}
-          disabled={submitting}
-        >
-          Block This Card
-        </button>
-      ) : (
-        <div className="result-card failure">
-          <p className="result-title failure">Confirm Block</p>
-
-          <p>
-            This will immediately stop this card from being used
-            for payments. The customer's balance is not lost.
-          </p>
-
-          <button
-            className="btn btn-danger"
-            type="button"
-            onClick={handleBlock}
-            disabled={submitting}
-          >
-            {submitting ? 'Blocking…' : 'Yes, Block Card'}
-          </button>
-
-          <button
-            className="btn btn-secondary"
-            type="button"
-            onClick={() => setConfirmingBlock(false)}
-            disabled={submitting}
-          >
-            Cancel
-          </button>
-        </div>
-      )}
-
-      {blockResult && (
-        <div className="result-card success">
-          <p className="result-title success">
-            ✓ Card Blocked
-          </p>
-
-          <div className="result-row">
-            <span>Card Status</span>
-            <strong>{blockResult.card_status}</strong>
-          </div>
-        </div>
-      )}
-
-      {/* REISSUE CARD */}
-      <div className="field">
-        <label htmlFor="manageCustomerId">Customer ID</label>
-
-        <input
-          id="manageCustomerId"
-          type="text"
-          placeholder="CUST-XXXXXX"
-          value={customerId}
-          onChange={(e) => {
-            setCustomerId(e.target.value)
-          }}
-          autoComplete="off"
-        />
-      </div>
-
-      <button
-        className="btn btn-secondary"
-        type="button"
-        onClick={handleReissue}
-        disabled={submitting}
-      >
-        {submitting ? 'Processing…' : 'Reissue New Card'}
-      </button>
-
-      <p className="helper-text">
-        Reissue blocks all active cards belonging to this customer
-        and generates a new card. The customer's balance remains unchanged.
-      </p>
-
-      {reissueResult && (
-        <div className="result-card success">
-          <p className="result-title success">
-            ✓ New Card Issued
-          </p>
-
-          <div className="result-row">
-            <span>Customer ID</span>
-            <strong>{reissueResult.customer_id}</strong>
-          </div>
-
-          <div className="result-row">
-            <span>New Card ID</span>
-            <strong>{reissueResult.new_card_id}</strong>
-          </div>
-
-          <div className="result-row">
-            <span>Balance Carried Over</span>
-            <strong>
-              ₹{reissueResult.balance_carried_over}
-            </strong>
-          </div>
-
-          {reissueResult.qr_code_base64 && (
-            <div className="qr-box">
-              <img
-                src={`data:image/png;base64,${reissueResult.qr_code_base64}`}
-                alt={`New QR card ${reissueResult.new_card_id}`}
-              />
-
-              <div className="qr-caption">
-                {reissueResult.new_card_id}
-              </div>
-
-              <p className="helper-text">
-                Print this new card and hand it to the customer.
-              </p>
-            </div>
-          )}
-        </div>
-      )}
-    </div>
+      {error && <StatusPanel variant="error" title="Action needs attention"><p>{error}</p></StatusPanel>}
+    </PortalFrame>
   )
 }

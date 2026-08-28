@@ -274,3 +274,38 @@ If you are an AI agent picking up this project for a team member:
 6. **Seed data PINs are all `1234`** — use `CARD-TEST01` through `CARD-TEST05` for testing
 7. **Don't rename API fields** — the field names in `models.py` are final. If you need a change, update this MEMORY.md and notify the team.
 8. **The `failure_reason` value set is closed** — only use the values documented in the README. Don't invent new ones.
+
+---
+
+## Krishna — Batwa Frontend Completion ✅
+
+**Last updated:** 2026-08-28 22:16:53 +05:30
+
+### Ownership and branch
+
+- Krishna’s implementation lives on `krishna/merchant-batwa-ui` in the clean isolated `Batwa-Krishna` worktree.
+- The original dirty `Batwa` worktree remained untouched.
+- Krishna owns the shared Batwa frontend foundation and Merchant Portal implementation. Pratik’s Agent API behaviour was preserved while the complete Agent interface was visually integrated.
+
+### Delivered implementation
+
+- Batwa landing page using the local bazaar illustration at `frontend/agent-portal/public/assets/batwa-bazaar-hero.webp`.
+- Shared design tokens, reusable UI components and the internal `WorkspaceShell`.
+- Role-specific Agent and Merchant sidebars and headers with an accessible custom language menu.
+- Agent Overview, Register Customer with printable QR-card result, Add Money scan/manual flow with review/result, Block and Reissue flows.
+- Merchant demo/configured modes, merchant selection/switching, amount/card-method/review/PIN/result flow, explicit camera activation, manual card fallback and demo-card path only in demo mode.
+- Responsive desktop/mobile behaviour and focused accessibility/security treatment.
+
+### Preserved behaviour and verification
+
+- Backend API contracts, Pratik’s Agent API wrapper, Harsh’s payment logic, QR payloads/printing, agent-float and customer-balance updates, the ₹100 payment limit, duplicate-payment protection, PIN privacy and existing deep links were preserved.
+- Frontend tests: 13/13 passed. Production build passed. Disposable backend checks: 36/36 passed.
+- Live Merchant payment and complete Agent/Merchant flows were manually verified by Krishna.
+- Desktop overflow was verified at 1440×900, 1366×768 and 1024×768; mobile horizontal overflow was verified at 390×844.
+- No console errors or React warnings were observed. PIN was not persisted, logged or exposed in URLs.
+
+### Handoff
+
+- Ruchir and Atharva should reuse the shared shell, tokens and components.
+- Admin, audio and receipt-specific business logic remains with the appropriate teammates.
+- A teammate will review the pull request and merge it into `main`; no direct merge to `main` was performed.

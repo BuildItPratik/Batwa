@@ -1,49 +1,40 @@
-import { NavLink, Route, Routes, Navigate } from 'react-router-dom'
+import { Route, Routes } from 'react-router-dom'
 import RegisterCustomer from './pages/RegisterCustomer.jsx'
 import TopUp from './pages/TopUp.jsx'
 import BlockReissue from './pages/BlockReissue.jsx'
+import AgentHome from './pages/AgentHome.jsx'
+import LandingPage from './pages/LandingPage.jsx'
+import MerchantPortal from './pages/MerchantPortal.jsx'
+import MerchantSetup from './pages/MerchantSetup.jsx'
+import AppShell from './components/ui/AppShell.jsx'
+import { LanguageProvider } from './i18n/LanguageContext.jsx'
+import { DEMO_MODE, getConfiguredMerchant } from './config/runtime.js'
 
-// NOTE for integration (Day 4): per the blueprint this is meant to end up
-// living inside ONE shared React app with routes for /agent, /merchant,
-// /customer, /admin. For now this file only owns /agent/* so Pratik can
-// build and test independently. When merging with Krishna/Ruchir's routers,
-// these <Routes> should be nested under the shared app's <Route path="/agent">.
+function ShellPage({ children }) {
+  return <AppShell>{children}</AppShell>
+}
+
+function MerchantEntry() {
+  const merchant = getConfiguredMerchant()
+  return <MerchantPortal merchantId={merchant.id} merchantName={merchant.name} />
+}
+
+function AppRoutes() {
+  return (
+    <Routes>
+      <Route path="/" element={<LandingPage />} />
+      <Route path="/agent" element={<ShellPage><AgentHome /></ShellPage>} />
+      <Route path="/agent/register" element={<ShellPage><RegisterCustomer /></ShellPage>} />
+      <Route path="/agent/topup" element={<ShellPage><TopUp /></ShellPage>} />
+      <Route path="/agent/manage" element={<ShellPage><BlockReissue /></ShellPage>} />
+      <Route path="/merchant/setup" element={<ShellPage><MerchantSetup /></ShellPage>} />
+      <Route path="/merchant" element={<ShellPage>{DEMO_MODE ? <MerchantSetup /> : <MerchantEntry />}</ShellPage>} />
+      <Route path="/merchant/pay" element={<ShellPage><MerchantEntry /></ShellPage>} />
+      <Route path="*" element={<ShellPage><LandingPage /></ShellPage>} />
+    </Routes>
+  )
+}
 
 export default function App() {
-  return (
-    <div className="app-shell">
-      <header className="app-header">
-        <h1>TapWallet · Agent</h1>
-      </header>
-
-      <nav className="app-nav">
-        <NavLink
-          to="/agent/register"
-          className={({ isActive }) => 'nav-link' + (isActive ? ' active' : '')}
-        >
-          Register
-        </NavLink>
-        <NavLink
-          to="/agent/topup"
-          className={({ isActive }) => 'nav-link' + (isActive ? ' active' : '')}
-        >
-          Top-Up
-        </NavLink>
-        <NavLink
-          to="/agent/manage"
-          className={({ isActive }) => 'nav-link' + (isActive ? ' active' : '')}
-        >
-          Block/Reissue
-        </NavLink>
-      </nav>
-
-      <Routes>
-        <Route path="/" element={<Navigate to="/agent/register" replace />} />
-        <Route path="/agent" element={<Navigate to="/agent/register" replace />} />
-        <Route path="/agent/register" element={<RegisterCustomer />} />
-        <Route path="/agent/topup" element={<TopUp />} />
-        <Route path="/agent/manage" element={<BlockReissue />} />
-      </Routes>
-    </div>
-  )
+  return <LanguageProvider><AppRoutes /></LanguageProvider>
 }
