@@ -38,7 +38,9 @@ def list_transactions(
         query += " AND counterparty_id = ? AND type = 'PAYMENT'"
         params.append(merchant_id)
 
-    query += " ORDER BY timestamp DESC"
+    # timestamp has one-second resolution, so tie-break on insertion order
+    # (rowid) to keep same-second transactions in true order for the live feed.
+    query += " ORDER BY timestamp DESC, rowid DESC"
 
     with get_db_readonly() as conn:
         rows = conn.execute(query, params).fetchall()

@@ -102,3 +102,14 @@ class TransactionItem(BaseModel):
 
 class TransactionsResponse(BaseModel):
     transactions: List[TransactionItem]
+
+
+# ── Admin Stats (additive — used by the /admin dashboard only) ───────────
+
+class AdminStatsResponse(BaseModel):
+    cash_digitized: float        # sum of SUCCESS TOPUP amounts
+    payments_received: float     # sum of SUCCESS PAYMENT amounts
+    active_cards: int
+    blocked_cards: int
+    total_customers: int
+    total_transactions: int

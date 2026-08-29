@@ -1,0 +1,66 @@
+import { NavLink, Link, useLocation } from 'react-router-dom'
+import { useLanguage } from '../../i18n/LanguageContext'
+import BatwaBrand from './BatwaBrand'
+import Icon from './Icon'
+import LanguageMenu from './LanguageMenu'
+import type { LanguageCode } from '../../i18n/copy'
+import type { WorkspaceRole } from './WorkspaceShell'
+
+interface NavItem {
+  to: string
+  labelKey: 'overview' | 'register' | 'topup' | 'manage' | 'merchant' | 'admin'
+  icon: string
+  end?: boolean
+}
+
+const NAV_ITEMS: Record<WorkspaceRole, NavItem[]> = {
+  agent: [
+    { to: '/agent', labelKey: 'overview', icon: 'home', end: true },
+    { to: '/agent/register', labelKey: 'register', icon: 'userPlus' },
+    { to: '/agent/topup', labelKey: 'topup', icon: 'cash' },
+    { to: '/agent/manage', labelKey: 'manage', icon: 'shield' },
+  ],
+  merchant: [
+    { to: '/merchant/pay', labelKey: 'merchant', icon: 'card', end: true },
+  ],
+  admin: [
+    { to: '/admin', labelKey: 'admin', icon: 'receipt', end: true },
+  ],
+}
+
+export interface WorkspaceSidebarProps {
+  role: WorkspaceRole
+  language: LanguageCode
+  onLanguageChange: (code: LanguageCode) => void
+  demoMode: boolean
+  onSwitchMerchant: () => void
+}
+
+export default function WorkspaceSidebar({ role, language, onLanguageChange, demoMode, onSwitchMerchant }: WorkspaceSidebarProps) {
+  const { copy } = useLanguage()
+  const isMerchant = role === 'merchant'
+  const items = NAV_ITEMS[role] || NAV_ITEMS.agent
+  const location = useLocation()
+
+  return (
+    <aside className="workspace-sidebar" aria-label={`${copy.workspace[role]} navigation`}>
+      <div className="workspace-sidebar-brand">
+        <Link to="/" aria-label={copy.workspace.backHome}><BatwaBrand compact /></Link>
+        <p>{copy.workspace[role]}</p>
+      </div>
+      <nav className="workspace-nav">
+        {items.map((item) => (
+          <NavLink className={({ isActive }) => `workspace-nav-link${(isActive || (isMerchant && location.pathname.startsWith('/merchant'))) ? ' is-active' : ''}`} end={item.end} key={item.to} to={item.to}>
+            <Icon name={item.icon} size={22} />
+            <span>{copy.navigation[item.labelKey]}</span>
+          </NavLink>
+        ))}
+      </nav>
+      <div className="workspace-sidebar-footer">
+        {isMerchant && demoMode && <button className="workspace-footer-link" type="button" onClick={onSwitchMerchant}><Icon name="wallet" size={19} /><span>{copy.workspace.switchMerchant}</span></button>}
+        <Link className="workspace-footer-link" to="/"><Icon name="arrowLeft" size={20} /><span>{copy.workspace.backHome}</span></Link>
+        <LanguageMenu value={language} onChange={onLanguageChange} />
+      </div>
+    </aside>
+  )
+}

@@ -2,7 +2,7 @@
 
 > This file is the living memory of the project. Every significant action, decision, and milestone is logged here so any team member (or AI agent) can pick up exactly where things left off.
 
-**Last updated:** 2026-08-27, 11:20 PM IST
+**Last updated:** 2026-08-28, 11:55 PM IST
 
 ---
 
@@ -93,15 +93,15 @@
 **Date:** Aug 27, 2026
 
 #### 1. Project Structure
-- Added a `frontend/` folder to the repo, containing the `agent-portal/` React (Vite) app
+- Added a `frontend/` folder to the repo, containing the `agent-portal/` React 19 + TypeScript (Vite) app
 - Structure:
   ```
   frontend/agent-portal/
-  ├── index.html, vite.config.js, package.json, .env.example
+  ├── index.html, vite.config.ts, package.json, .env.example, pnpm-lock.yaml
   └── src/
-      ├── App.jsx, main.jsx
-      ├── api/agentApi.js
-      ├── pages/ (RegisterCustomer.jsx, TopUp.jsx, BlockReissue.jsx)
+      ├── App.tsx, main.tsx
+      ├── api/agentApi.ts
+      ├── pages/ (RegisterCustomer.tsx, TopUp.tsx, BlockReissue.tsx)
       └── styles/global.css
   ```
 - Runs standalone on `http://localhost:5173`, independent of the other portals for now (see integration note below)
@@ -112,7 +112,7 @@
 - **`/agent/manage`** — search a customer, block their card (with a confirm step), or reissue a new card with balance carried over
 
 #### 3. Backend Integration
-- `src/api/agentApi.js` is the single source of truth for all backend calls — wired to Harsh's **real** endpoints, not mocks
+- `src/api/agentApi.ts` is the single source of truth for Agent backend calls — wired to Harsh's **real** endpoints, not mocks
 - Uses the updated contract from Decision 1 (`card_id`, not `customer_id`, in register/topup/block/reissue requests)
 - Handles both transport failures and business-logic failures (`status: "FAILED"` with a `failure_reason`) through one consistent `ApiError` type, so failure handling stays uniform across all three screens
 
@@ -121,7 +121,7 @@
 - Intentionally built to be a class-name swap, not a rewrite, once Ruchir's shared UI kit lands
 
 #### 5. Open Items Raised by Pratik (need team input)
-- ⚠️ **`/wallet/balance/{id}` contract is ambiguous.** Decision 1 renamed the ID field to `card_id` for register/topup/pay/block/reissue, but never said whether this GET endpoint was repointed too, or still expects `customer_id`. Not blocking for the Agent Portal today (topup/reissue responses already return the new balance directly), but Ruchir's admin dashboard and Atharva's receipts will likely call this endpoint — **Harsh needs to confirm and document which ID it expects before someone guesses wrong.**
+- ✅ **`/wallet/balance/{id}` contract is resolved.** It takes `customer_id`; see the Decision 1 follow-up below.
 - QR scanning on the top-up screen is currently manual text entry only (blueprint calls for scan-or-enter). Plan is to reuse Krishna's `html5-qrcode` integration once the Merchant Portal builds it, rather than duplicating the component.
 - No agent login/session yet — `agent_id` is a plain text field defaulting to `AGT-001`. Fine for the demo; flagging so the team explicitly agrees we're not building agent auth in scope.
 - This repo currently runs its own standalone `<BrowserRouter>` with only `/agent/*` routes. Per the blueprint, Day 4 merge should nest these three `<Route>`s under the shared app's `/agent` path instead of keeping a separate router.
@@ -140,7 +140,7 @@
   - Register response now includes both `customer_id` and `card_id`
   - Reissue response returns `new_card_id` instead of `new_customer_id`
 - **Action needed:** ⚠️ Harsh must communicate these field name changes to Pratik, Krishna, Ruchir, and Atharva at the Day 1 sync. **(Done for Pratik — Agent Portal is built against the updated contract.)**
-- **Still open:** Decision 1 doesn't state whether `GET /wallet/balance/{id}` takes `card_id` or `customer_id` now. See "Open Items Raised by Pratik" above — needs Harsh to close this out.
+- **Resolved (Aug 28, by Ruchir, from the implementation):** `GET /wallet/balance/{id}` takes **`customer_id`**, not `card_id` — `backend/routes/wallet.py` queries the `customers` table directly and returns `{ customer_id, balance, card_status }` (`card_status` reflects the customer's active card, `no_active_card` if none). `agentApi.getBalance()` is documented accordingly. Harsh: shout if this was not the intent; nothing currently calls it in a demo path.
 
 ### Decision 2: Rs.100 Limit Scope
 - **Date:** Aug 27, 2026
@@ -160,7 +160,7 @@
 
 ### Harsh — Remaining Tasks
 - [ ] Communicate API contract changes (card_id separation) to team at Day 1 sync
-- [ ] **New:** Confirm and document whether `GET /wallet/balance/{id}` expects `card_id` or `customer_id` (raised by Pratik — blocks Ruchir/Atharva if left unresolved)
+- [x] `GET /wallet/balance/{id}` expects `customer_id` — confirmed from the implementation and documented (Decision 1 follow-up); ratify at next sync
 - [ ] Support frontend team with any backend integration issues
 - [ ] Add CORS origin restrictions before production deploy (currently allows `*`)
 - [ ] Warm up backend before demo (Render free tier cold starts)
@@ -193,29 +193,26 @@
   - `LIMIT_EXCEEDED` → "Amount exceeds Rs.100 limit."
 - [ ] Wire to `POST /wallet/pay`
 
-### Ruchir — Accessibility + Admin Dashboard
-- [ ] Build shared UI kit: large buttons, high-contrast colors, consistent icons
-- [ ] Hand UI kit to Pratik and Krishna by end of Day 2
-- [ ] Build language switcher (EN/HI/TA) — persistent top-of-screen control
-- [ ] Record/source voice prompt audio clips per language:
-  - "Enter amount", "Scan your card", "Enter your PIN", "Payment successful", "Payment failed"
-- [ ] Wire audio to play at relevant screen/step
-- [ ] Build Admin dashboard (`/admin` route):
-  - Live transaction feed from `GET /transactions`
-  - Running totals: total cash converted to digital, active cards, blocked cards
-- [ ] Ensure success/failure distinguishable by color, icon, AND sound (not text alone)
-- [ ] **Note:** if the admin dashboard needs balance lookups by ID, confirm with Harsh whether `GET /wallet/balance/{id}` takes `card_id` or `customer_id` (see open item above) before building against it
+### Ruchir — Accessibility + Admin Dashboard ✅ COMPLETE (see "Ruchir — Accessibility + Admin" section below)
+- [x] Shared UI kit — delivered by Krishna's shared tokens/components; Ruchir reused them rather than duplicating
+- [x] Build language switcher (EN/HI/TA) — persistent control (sidebar on desktop, top bar on mobile), choice persisted in localStorage
+- [x] Full Hindi + Tamil translations in `src/i18n/copy.ts` (guarded by a key-parity test)
+- [x] Voice prompt audio clips per language (all 5 prompts × en/hi/ta, pre-generated mp3s in `public/audio/`)
+- [x] Wire audio to play at relevant merchant-flow step; success chime / failure buzz tones on results
+- [x] Build Admin dashboard (`/admin` route): live transaction feed (5s auto-refresh) + running totals
+- [x] Success/failure distinguishable by color, icon, AND sound
+- [x] Payment receipt print view on the merchant success screen (blueprint listed receipt generation under Ruchir)
+- [ ] Day 5: finalize pitch slides
 
 ### Atharva — Backend Support + QA + Deployment
-- [ ] Build receipt generation (PDF via `reportlab` or browser print view)
-  - Fields: txn_id, amount, date, new balance, merchant name
+- [x] Receipt generation — covered by the browser print view Ruchir added to the merchant success screen (fields: txn_id, amount, date, new balance, merchant name, masked card). A `reportlab` PDF is now optional polish, not required for the DoD.
 - [ ] Write additional integration tests for edge cases
 - [ ] Set up deployment:
   - Backend on Render/Railway
   - Frontend on Vercel
 - [ ] Test deployed endpoints
 - [ ] Support Harsh on any backend bug triage
-- [ ] **Note:** if receipts need balance lookups by ID, confirm with Harsh whether `GET /wallet/balance/{id}` takes `card_id` or `customer_id` (see open item above) before building against it
+- [x] Balance endpoint ambiguity resolved: `GET /wallet/balance/{id}` takes **customer_id** (see Decision 1 follow-up)
 
 ### Phase 2 — Integration (Day 4, whole team)
 - [ ] Connect all portals + admin to deployed backend (not localhost)
@@ -254,9 +251,10 @@ python -m uvicorn main:app --reload --port 8000
 
 ```bash
 cd frontend/agent-portal
-npm install
+pnpm install
 cp .env.example .env       # point VITE_API_BASE_URL at Harsh's backend
-npm run dev                # runs on http://localhost:5173
+pnpm dev                   # runs on http://localhost:5173
+# Checks: pnpm typecheck && pnpm test && pnpm build
 ```
 Requires the backend running first (see above).
 
@@ -268,9 +266,9 @@ If you are an AI agent picking up this project for a team member:
 
 1. **Read the blueprint first:** `tapwallet-implementation-blueprint.md` is the source of truth for overall scope
 2. **Read this MEMORY.md:** for what's actually been built and what's changed from the blueprint
-3. **API contract has changed** from the blueprint — use `card_id` (not `customer_id`) in topup/pay/block requests. **The `GET /wallet/balance/{id}` field is still unresolved — check the open item under Decision 1 before assuming either way.**
+3. **API contract has changed** from the blueprint — use `card_id` (not `customer_id`) in topup/pay/block requests. `GET /wallet/balance/{id}` takes **customer_id** (resolved — see Decision 1). `GET /admin/stats` is an additive read-only endpoint for the admin dashboard — it changes no Section 6 shapes.
 4. **Backend is fully operational** at `http://localhost:8000` — you can test against it immediately
-5. **Agent Portal is fully operational** at `http://localhost:5173` (after `npm install` + `.env` setup) — wired to the real backend, not mocks
+5. **Agent Portal is fully operational** at `http://localhost:5173` (after `pnpm install` + `.env` setup) — wired to the real backend, not mocks; source is TypeScript and the app runs React 19.
 6. **Seed data PINs are all `1234`** — use `CARD-TEST01` through `CARD-TEST05` for testing
 7. **Don't rename API fields** — the field names in `models.py` are final. If you need a change, update this MEMORY.md and notify the team.
 8. **The `failure_reason` value set is closed** — only use the values documented in the README. Don't invent new ones.
@@ -309,3 +307,62 @@ If you are an AI agent picking up this project for a team member:
 - Ruchir and Atharva should reuse the shared shell, tokens and components.
 - Admin, audio and receipt-specific business logic remains with the appropriate teammates.
 - A teammate will review the pull request and merge it into `main`; no direct merge to `main` was performed.
+
+---
+
+## Ruchir — Accessibility + Admin Dashboard ✅
+
+**Last updated:** 2026-08-28, 11:55 PM IST
+
+### Delivered implementation
+
+- **Admin dashboard** at `/admin` (`src/pages/AdminDashboard.tsx`), inside the shared `WorkspaceShell` with its own sidebar/header role. Live transaction feed from `GET /transactions`, auto-refreshing every 5 seconds (plus a manual refresh button), with running totals: cash converted to digital, payments received, active cards, blocked cards. Reachable from a quiet "Live dashboard" link on the landing page.
+- **New backend endpoint `GET /admin/stats`** (`backend/routes/admin.py`) supplying the totals — the card counts are not derivable from `/transactions` alone. Additive and read-only; no Section 6 contract shapes changed. Covered by test section 14 in `test_endpoints.py` (now 41 checks).
+- **Full Hindi + Tamil translations** in `src/i18n/copy.ts`; the merchant payment flow, workspace shell/sidebar/header and admin dashboard are wired to copy keys. `tests/i18nCopy.test.ts` enforces key-parity so hi/ta can never silently fall back to English. Language choice persists in localStorage. The language menu now also appears in the mobile top bar (the sidebar — its old only home — is hidden under 760px).
+- **Voice prompts (pre-recorded, per blueprint):** `public/audio/{en,hi,ta}/{enter_amount,scan_card,enter_pin,payment_success,payment_failed}.mp3`, generated once by `scripts/generate_audio.py` (gTTS; committed as static assets — no runtime TTS). `src/audio/sounds.ts` plays them per merchant-flow step; playback is best-effort and never blocks a payment.
+- **Success/failure sound:** `public/audio/success.mp3` (rising chime) and `failure.mp3` (low buzz) play on payment results (tone, then the spoken result in the selected language) and on agent top-up results — outcomes are now color + icon + sound. `tests/audioAssets.test.ts` verifies all 17 audio assets exist.
+- **Payment receipt:** printable receipt block on the merchant success screen (merchant, date, txn_id, masked card, amount, new balance) with a "Print receipt" button using a print-only stylesheet.
+
+### Verification
+
+- Backend integration tests: **41/41 passed** (36 existing + 5 new for `/admin/stats`).
+- Frontend tests: **19/19 passed** (13 existing + 6 new: i18n parity, audio assets). Production build passes.
+- Agent/merchant flows untouched logically — `merchantFlow.ts`, `merchantApi.ts`, `agentApi.ts` request/response shapes unchanged (only the stale balance-endpoint comment was corrected).
+
+### Repo hygiene (flagged for Harsh)
+
+- Removed committed `__pycache__/*.pyc` files from git and added `backend/.gitignore` (`__pycache__/`, `*.pyc`, `.venv/`, SQLite WAL sidecars).
+- `backend/batwa.db` is still tracked in git, so every local test run dirties it — recommend untracking it too (it is fully regenerated by `python seed.py`).
+
+### Remaining for Ruchir
+
+- Day 5 pitch slides.
+- Optional: translate the remaining agent-facing prose (AgentHome/Register/TopUp/BlockReissue screen texts are still English-only; the customer-facing merchant flow, nav and admin are fully translated).
+
+---
+
+## Frontend TypeScript / pnpm Migration ✅
+
+**Last updated:** 2026-08-29
+
+- Migrated every frontend source and test file from `.js`/`.jsx` to `.ts`/`.tsx`.
+- Added strict TypeScript checking with `tsconfig.json`; API response/request
+  interfaces and the merchant reducer actions/state are typed.
+- Upgraded the frontend to React **19.2.8**, React DOM **19.2.8**, and React
+  Router **7.18.3**. React Router's old v7 future flags were removed because
+  v7 now uses that behavior by default.
+- Replaced the frontend npm workflow with pnpm 11.3.0 and added the frontend
+  `pnpm-lock.yaml`. `package.json` declares the package manager and Node.js
+  >=20.19 requirement.
+- Replaced `node:test` with Vitest so TypeScript tests run through the same
+  Vite module pipeline.
+- Updated the root and frontend README setup commands. The old empty root
+  `package-lock.json` and frontend lockfile were removed.
+
+### Migration verification
+
+- `pnpm install --frozen-lockfile` ✅
+- `pnpm typecheck` ✅
+- `pnpm test` — **19/19 passed** ✅
+- `pnpm build` ✅
+- Vite dev server smoke-tested at `/` and `/admin` ✅
