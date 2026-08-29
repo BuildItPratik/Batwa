@@ -136,47 +136,49 @@ Batwa/
 
 ## Quick Start
 
-### Backend
+### Install the backend dependencies
 
 ```bash
 cd backend
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Seed the database with test data
+python -m venv .venv
+.venv/bin/pip install -r requirements.txt
 python seed.py
-
-# Start the server (hot-reload enabled)
-python -m uvicorn main:app --reload --port 8000
+cd ..
 ```
 
-The API will be live at `http://localhost:8000`
-Interactive docs at `http://localhost:8000/docs`
+On Windows, use `.venv\Scripts\pip` instead of `.venv/bin/pip`.
 
-### Frontend
+### Start both services
 
-The frontend uses **pnpm**, TypeScript, React 19, and Vite:
+Install the frontend dependencies once, then run the backend and frontend together from the repository root:
 
 ```bash
-cd frontend/agent-portal
-pnpm install
-cp .env.example .env
+pnpm setup:frontend
+[ -f frontend/agent-portal/.env ] || cp frontend/agent-portal/.env.example frontend/agent-portal/.env
 pnpm dev
 ```
 
-The app will be live at `http://localhost:5173`.
+`pnpm dev` starts the API at `http://localhost:8000` and the frontend at
+`http://localhost:5173`. It uses `backend/.venv` automatically when that
+virtual environment exists. Set `BATWA_PYTHON` if you want to use a different
+Python executable. Press `Ctrl+C` once to stop both services.
 
-Useful checks:
+### Start a service separately
 
 ```bash
-pnpm typecheck
-pnpm test
-pnpm build
+pnpm dev:backend
+pnpm dev:frontend
 ```
 
-The frontend routes are `/agent`, `/merchant`, and `/admin`. See
-`frontend/agent-portal/README.md` for route ownership and configuration.
+The API docs are at `http://localhost:8000/docs`.
+
+Useful frontend checks:
+
+```bash
+pnpm --dir frontend/agent-portal typecheck
+pnpm --dir frontend/agent-portal test
+pnpm --dir frontend/agent-portal build
+```
 
 ### Test Data (from seed.py)
 

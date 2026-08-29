@@ -1,0 +1,12 @@
+{
+  "name": "batwa",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@11.3.0",
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "dev:frontend": "pnpm --dir frontend/agent-portal dev",
+    "dev:backend": "node scripts/dev.mjs --backend-only",
+    "setup:frontend": "pnpm --dir frontend/agent-portal install --frozen-lockfile"
+  }
+}
