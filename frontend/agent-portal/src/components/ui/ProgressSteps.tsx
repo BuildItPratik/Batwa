@@ -6,16 +6,17 @@ export interface ProgressStep {
 export interface ProgressStepsProps {
   steps: ProgressStep[]
   currentStep: string
+  ariaLabel?: string
 }
 
-export default function ProgressSteps({ steps, currentStep }: ProgressStepsProps) {
+export default function ProgressSteps({ steps, currentStep, ariaLabel = 'Payment progress' }: ProgressStepsProps) {
   const currentIndex = Math.max(
     0,
     steps.findIndex((step) => step.id === currentStep),
   )
 
   return (
-    <ol className="batwa-progress" aria-label="Payment progress">
+    <ol className="batwa-progress" aria-label={ariaLabel}>
       {steps.map((step, index) => {
         const complete = index < currentIndex
         const active = index === currentIndex

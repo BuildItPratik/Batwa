@@ -13,7 +13,7 @@ class RegisterRequest(BaseModel):
     name: str
     phone: Optional[str] = None
     pin: str = Field(..., min_length=4, max_length=4, pattern=r"^\d{4}$")
-    language_pref: str = Field(default="en", pattern=r"^(en|hi|ta)$")
+    language_pref: str = Field(default="en", pattern=r"^(en|hi|ta|mr)$")
 
 
 class RegisterResponse(BaseModel):

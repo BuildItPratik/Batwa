@@ -32,11 +32,13 @@ export interface WorkspaceSidebarProps {
   role: WorkspaceRole
   language: LanguageCode
   onLanguageChange: (code: LanguageCode) => void
+  loading?: boolean
+  translationError?: boolean
   demoMode: boolean
   onSwitchMerchant: () => void
 }
 
-export default function WorkspaceSidebar({ role, language, onLanguageChange, demoMode, onSwitchMerchant }: WorkspaceSidebarProps) {
+export default function WorkspaceSidebar({ role, language, onLanguageChange, loading = false, translationError = false, demoMode, onSwitchMerchant }: WorkspaceSidebarProps) {
   const { copy } = useLanguage()
   const isMerchant = role === 'merchant'
   const items = NAV_ITEMS[role] || NAV_ITEMS.agent
@@ -59,7 +61,8 @@ export default function WorkspaceSidebar({ role, language, onLanguageChange, dem
       <div className="workspace-sidebar-footer">
         {isMerchant && demoMode && <button className="workspace-footer-link" type="button" onClick={onSwitchMerchant}><Icon name="wallet" size={19} /><span>{copy.workspace.switchMerchant}</span></button>}
         <Link className="workspace-footer-link" to="/"><Icon name="arrowLeft" size={20} /><span>{copy.workspace.backHome}</span></Link>
-        <LanguageMenu value={language} onChange={onLanguageChange} />
+        <LanguageMenu value={language} onChange={onLanguageChange} loading={loading} loadingLabel={copy.common.translating} ariaLabel={copy.common.chooseLanguage} />
+        {(loading || translationError) && <p className="language-status" aria-live="polite">{loading ? copy.common.translating : copy.common.translationFallback}</p>}
       </div>
     </aside>
   )

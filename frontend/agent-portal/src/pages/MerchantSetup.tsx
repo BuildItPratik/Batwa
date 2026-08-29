@@ -3,8 +3,10 @@ import { Button, PortalFrame } from '../components/ui/index'
 import { getConfiguredMerchant, selectDemoMerchant } from '../config/runtime'
 import { DEMO_MERCHANTS } from '../config/merchantDemo'
 import Icon from '../components/ui/Icon'
+import { useLanguage } from '../i18n/LanguageContext'
 
 export default function MerchantSetup() {
+  const { copy } = useLanguage()
   const navigate = useNavigate()
   const selectedMerchant = getConfiguredMerchant()
 
@@ -15,28 +17,28 @@ export default function MerchantSetup() {
 
   return (
     <PortalFrame
-      eyebrow="Merchant Counter · Demo mode"
-      title="Choose today’s counter"
-      description="This presenter-only switch selects the merchant identity used by the real payment request."
+      eyebrow={copy.merchantSetup.eyebrow}
+      title={copy.merchantSetup.title}
+      description={copy.merchantSetup.description}
       className="merchant-setup-panel"
     >
-      <div className="demo-banner"><span className="demo-dot" /> Demo facility · no merchant authentication</div>
+      <div className="demo-banner"><span className="demo-dot" /> {copy.merchantSetup.demoBanner}</div>
       <div className="merchant-catalogue">
         {DEMO_MERCHANTS.map((merchant) => (
           <article className={`merchant-choice${merchant.id === selectedMerchant.id ? ' is-selected' : ''}`} key={merchant.id} aria-current={merchant.id === selectedMerchant.id ? 'true' : undefined}>
             <div className="merchant-choice-mark" aria-hidden="true">{merchant.name.charAt(0)}</div>
             <div>
               <p className="merchant-choice-id">{merchant.id}</p>
-              <h2>{merchant.name}</h2>
-              <p>{merchant.id === selectedMerchant.id ? 'Currently selected · seeded local merchant' : 'Seeded local merchant'}</p>
-            </div>
-            <Button onClick={() => choose(merchant.id)}>Use this counter</Button>
+               <h2>{merchant.name}{merchant.id === selectedMerchant.id && <span className="merchant-choice-selected">{copy.common.selected}</span>}</h2>
+               <p>{merchant.id === selectedMerchant.id ? copy.merchantSetup.currentSelection : copy.merchantSetup.seededMerchant}</p>
+             </div>
+             <Button onClick={() => choose(merchant.id)}>{copy.merchantSetup.useCounter}</Button>
           </article>
         ))}
       </div>
-      <p className="batwa-field-hint">In normal configured mode, identity comes from authenticated merchant provisioning and this switch is hidden.</p>
-      <Link className="batwa-text-link" to="/">Return to Batwa home</Link>
-      <div className="merchant-counter-floor merchant-setup-floor" aria-label="Merchant counter guidance"><span><Icon name="card" size={19} /> Select the receiving counter</span><span><Icon name="cash" size={19} /> Accept familiar small payments</span><span><Icon name="receipt" size={19} /> Confirm each receipt</span></div>
+       <p className="batwa-field-hint">{copy.merchantSetup.normalModeHint}</p>
+       <Link className="batwa-text-link" to="/">{copy.common.returnHome}</Link>
+       <div className="merchant-counter-floor merchant-setup-floor" aria-label={copy.workspace.merchant}><span><Icon name="card" size={19} /> {copy.merchantSetup.selectCounter}</span><span><Icon name="cash" size={19} /> {copy.merchantSetup.acceptPayments}</span><span><Icon name="receipt" size={19} /> {copy.merchantSetup.confirmReceipt}</span></div>
     </PortalFrame>
   )
 }

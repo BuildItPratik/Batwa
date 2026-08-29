@@ -1,6 +1,6 @@
 // Single source of truth for talking to the backend.
-// Field names here MUST match backend/models.py exactly — see MEMORY.md
-// "Architecture Decisions Log > Decision 1" for why card_id != customer_id.
+// Field names here MUST match backend/models.py exactly. Card IDs and customer
+// IDs are deliberately separate because cards can be reissued.
 //
 // If Harsh changes a shape again, this file is the only place that
 // should need to change for the Agent Portal to keep working.
@@ -106,7 +106,7 @@ async function get<T>(path: string): Promise<T> {
 
 /**
  * Register a new customer.
- * Request:  { name, phone, pin, language_pref }
+ * Request:  { name, phone, pin, language_pref (en|hi|ta|mr) }
  * Response: { customer_id, card_id, qr_code_base64, status }
  *   (per Decision 1 — response now returns BOTH customer_id and card_id)
  */
@@ -180,7 +180,7 @@ export function reissueCard({ customerId }: { customerId: string }): Promise<Rei
  *
  * CONFIRMED (from backend/routes/wallet.py): this endpoint takes CUSTOMER_ID,
  * not card_id — it queries the customers table directly and reports the
- * status of the customer's active card. See MEMORY.md Decision 1 follow-up.
+ * status of the customer's active card.
  */
 export function getBalance(customerId: string): Promise<BalanceResponse> {
   return get<BalanceResponse>(`/wallet/balance/${encodeURIComponent(customerId)}`)

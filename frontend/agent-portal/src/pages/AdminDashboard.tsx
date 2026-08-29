@@ -15,14 +15,15 @@ function parseTimestamp(value: string | null): Date | null {
   return Number.isNaN(date.getTime()) ? null : date
 }
 
-function formatTime(value: string | null): string {
+function formatTime(value: string | null, locale: string): string {
   const date = parseTimestamp(value)
   if (!date) return value || '—'
-  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+  return date.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit', second: '2-digit' })
 }
 
 export default function AdminDashboard() {
-  const { copy } = useLanguage()
+  const { copy, language } = useLanguage()
+  const locale = `${language}-IN`
   const [stats, setStats] = useState<AdminStats | null>(null)
   const [transactions, setTransactions] = useState<TransactionItem[] | null>(null)
   const [failed, setFailed] = useState(false)
@@ -52,8 +53,8 @@ export default function AdminDashboard() {
   }, [refresh])
 
   const totals: { key: 'cashDigitized' | 'paymentsReceived' | 'activeCards' | 'blockedCards'; icon: string; value: string | null }[] = [
-    { key: 'cashDigitized', icon: 'cash', value: stats ? formatRupees(stats.cash_digitized) : null },
-    { key: 'paymentsReceived', icon: 'wallet', value: stats ? formatRupees(stats.payments_received) : null },
+    { key: 'cashDigitized', icon: 'cash', value: stats ? formatRupees(stats.cash_digitized, locale) : null },
+    { key: 'paymentsReceived', icon: 'wallet', value: stats ? formatRupees(stats.payments_received, locale) : null },
     { key: 'activeCards', icon: 'card', value: stats ? String(stats.active_cards) : null },
     { key: 'blockedCards', icon: 'shield', value: stats ? String(stats.blocked_cards) : null },
   ]
@@ -72,7 +73,7 @@ export default function AdminDashboard() {
           <span className="admin-live-dot" aria-hidden="true" />
           <div>
             <span>{copy.admin.live}</span>
-            {lastUpdated && <small>{copy.admin.updated} · {lastUpdated.toLocaleTimeString()}</small>}
+            {lastUpdated && <small>{copy.admin.updated} · {lastUpdated.toLocaleTimeString(locale)}</small>}
           </div>
           <Button variant="quiet" onClick={refresh}>{copy.admin.refresh}</Button>
         </div>
@@ -116,9 +117,9 @@ export default function AdminDashboard() {
                     : null
                   return (
                     <tr key={txn.txn_id}>
-                      <td>{formatTime(txn.timestamp)}</td>
+                       <td>{formatTime(txn.timestamp, locale)}</td>
                       <td>{copy.admin.types[txn.type] || txn.type}</td>
-                      <td>{typeof txn.amount === 'number' ? formatRupees(txn.amount) : '—'}</td>
+                       <td>{typeof txn.amount === 'number' ? formatRupees(txn.amount, locale) : '—'}</td>
                       <td className="admin-mono">{txn.customer_id || '—'}</td>
                       <td className="admin-mono">{txn.counterparty_id || '—'}</td>
                       <td>

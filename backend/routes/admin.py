@@ -4,7 +4,7 @@ GET /admin/stats
 
 Read-only aggregates for the Admin dashboard (Ruchir).
 Additive endpoint — no Section 6 contract shapes were changed.
-Documented in MEMORY.md.
+See the root README for the public API overview.
 """
 
 from fastapi import APIRouter
