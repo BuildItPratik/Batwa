@@ -1,8 +1,6 @@
 /*
-  Placeholder accessibility-first styling for the Agent Portal.
-  Ruchir owns the real shared UI kit (per blueprint) — swap these
-  tokens out for his classes/components when they land. Kept
-  deliberately simple so that swap is a find-and-replace, not a rewrite.
+  Legacy accessibility-first styling retained for the original shell.
+  The current role-based UI uses the shared tokens and styles in ui.css.
 */
 
 :root {

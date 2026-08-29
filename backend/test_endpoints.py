@@ -48,7 +48,7 @@ print("=" * 60)
 # ── 1. Register a new customer ─────────────────────────────
 print("\n1. POST /customers/register")
 body, status = post("/customers/register", {
-    "name": "Test User", "phone": "9999999999", "pin": "5678", "language_pref": "hi"
+    "name": "Test User", "phone": "9999999999", "pin": "5678", "language_pref": "mr"
 })
 check("Status 200", status == 200, f"got {status}")
 check("Has customer_id", "customer_id" in body, str(body))

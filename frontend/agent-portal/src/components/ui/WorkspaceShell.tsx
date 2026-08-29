@@ -19,7 +19,7 @@ function getRole(pathname: string): WorkspaceRole {
 export default function WorkspaceShell({ children }: { children: ReactNode }) {
   const location = useLocation()
   const navigate = useNavigate()
-  const { language, setLanguage, copy } = useLanguage()
+  const { language, setLanguage, copy, isTranslating, translationError } = useLanguage()
   const role = getRole(location.pathname)
   const merchant = getConfiguredMerchant()
   const agent = getConfiguredAgent()
@@ -27,17 +27,17 @@ export default function WorkspaceShell({ children }: { children: ReactNode }) {
 
   return (
     <div className={`workspace-shell workspace-shell-${role}`}>
-      <WorkspaceSidebar role={role} language={language} onLanguageChange={setLanguage} demoMode={DEMO_MODE} onSwitchMerchant={() => navigate('/merchant/setup')} />
+      <WorkspaceSidebar role={role} language={language} onLanguageChange={setLanguage} loading={isTranslating} translationError={translationError} demoMode={DEMO_MODE} onSwitchMerchant={() => navigate('/merchant/setup')} />
       <div className="workspace-content">
         <header className="workspace-mobilebar">
           <a href="/" aria-label={copy.workspace.backHome}><BatwaBrand compact /></a>
           <div className="workspace-mobile-context"><span>{copy.workspace[role]}</span><strong>{mobileContextId}</strong></div>
           <div className="workspace-mobile-tools">
-            <LanguageMenu value={language} onChange={setLanguage} />
+            <LanguageMenu value={language} onChange={setLanguage} loading={isTranslating} loadingLabel={copy.common.translating} ariaLabel={copy.common.chooseLanguage} />
             <button className="workspace-mobile-back" type="button" onClick={() => navigate('/')} aria-label={copy.workspace.backHome}><Icon name="arrowLeft" size={20} /></button>
           </div>
         </header>
-        <WorkspaceHeader pathname={location.pathname} role={role} merchant={merchant} />
+          <WorkspaceHeader pathname={location.pathname} role={role} merchant={merchant} />
         <main className="workspace-main">{children}</main>
       </div>
     </div>

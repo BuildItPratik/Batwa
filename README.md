@@ -1,162 +1,165 @@
-# Batwa 💳
+# Batwa
 
-**Non-Smartphone Digital Payment System** — Cognizant NPN Nurture Program Hackathon
+## Assisted digital payments without a smartphone
 
-> Let people without smartphones or bank accounts make small digital payments using a simple printed QR card.
+[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=20232A)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-Python-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![Vite](https://img.shields.io/badge/Vite-8-646CFF?logo=vite&logoColor=white)](https://vite.dev/)
 
----
+> Batwa lets people make small digital payments with a printed QR card and a PIN. No smartphone, bank account, or personal device is required at the point of payment.
+
+![Batwa system architecture](docs/architecture.png)
+
+Batwa is a working simulation of an assisted-payment network. An Agent creates and loads customer cards, a Merchant accepts payments, and an Admin sees the transaction stream as it happens.
 
 ## The Problem
 
-Millions of people in India — daily-wage workers, elderly citizens, rural residents — are excluded from digital payments because they don't own a smartphone or have a bank account. They're stuck with cash, missing out on the convenience and safety of digital transactions.
+Many people are excluded from digital payments because they do not own a smartphone or bank account. Cash is familiar, but it is difficult to track, easy to lose, and cannot provide the simple audit trail that digital systems can.
 
-## Our Solution
+The product needs to work at a local counter, on ordinary hardware, with short flows that are understandable without a complicated app.
 
-**Batwa** bridges this gap with a simple 3-step flow:
+## The Solution
 
-1. **Get a Card** — A customer visits a local Agent (neighborhood recharge shop), provides basic info, and receives a printed QR card
-2. **Load Cash** — The customer hands cash to the Agent, who digitally loads that amount onto the card's balance
-3. **Pay at Shops** — At a merchant, the customer's QR card is scanned, they enter a 4-digit PIN, and payment goes through instantly
+Batwa turns a printed card into a small, assisted wallet:
 
-Everything is designed for low-literacy users: large buttons, voice prompts in Tamil/Hindi/English, and clear green/red visual indicators.
+1. **Register** — An Agent creates a customer profile and prints a QR card.
+2. **Load cash** — The customer gives cash to the Agent, who credits the card from the Agent float.
+3. **Pay** — A Merchant scans the card, confirms the amount, and the customer enters a four-digit PIN.
+4. **Track** — Every successful or failed operation is recorded in the transaction history and shown on the Admin dashboard.
 
-> **Note:** This is a simulation/demo system — no real bank integration or NFC hardware. QR codes stand in for tap cards, and all balances are demo money.
+## What Each Role Does
 
----
-
-## System Architecture
-
-![Batwa Architecture](docs/architecture.png)
-
-### Payment Flow
-
-```
-┌─────────────┐     ┌──────────────────┐     ┌─────────────────┐
-│   CUSTOMER  │     │   AGENT PORTAL   │     │ MERCHANT PORTAL │
-│  (QR Card)  │     │   (React App)    │     │   (React App)   │
-└──────┬──────┘     └────────┬─────────┘     └────────┬────────┘
-       │                     │                        │
-       │  1. Registers at    │                        │
-       │     agent shop      │                        │
-       │────────────────────>│                        │
-       │                     │  2. POST /register     │
-       │  3. Gets QR card    │───────────────┐        │
-       │<────────────────────│               │        │
-       │                     │  4. POST      │        │
-       │  5. Hands over cash │    /topup     │        │
-       │────────────────────>│──────────┐    │        │
-       │                     │          │    │        │
-       │  6. Balance loaded  │          ▼    ▼        │
-       │<────────────────────│    ┌───────────────┐   │
-       │                     │    │   FASTAPI     │   │
-       │                     │    │   BACKEND     │   │
-       │  7. QR scanned      │    │               │   │
-       │     at merchant     │    │ • PIN verify  │   │
-       │─────────────────────┼───>│ • Balance chk │   │
-       │                     │    │ • ₹100 limit  │   │
-       │  8. Enters PIN      │    │ • Atomic txn  │   │
-       │─────────────────────┼───>│ • Audit trail │<──│
-       │                     │    │               │   │  9. POST /pay
-       │  10. ✅ or ❌       │    └───────┬───────┘  │
-       │<─────────────────────────────────┼──────────>│
-       │                     │            │           │
-       │                     │            ▼           │
-       │                     │    ┌───────────────┐   │
-       │                     │    │    SQLite DB  │   │
-       │                     │    │               │   │
-       │                     │    │ • customers   │   │
-       │                     │    │ • cards       │   │
-       │                     │    │ • agents      │   │
-       │                     │    │ • merchants   │   │
-       │                     │    │ • transactions│   │
-       │                     │    └───────────────┘   │
-       │                     │                        │
-```
-
-### Core Design Decisions
-
-| Decision | What | Why |
+| Role | Responsibility | Main routes |
 |---|---|---|
-| **Card ≠ Customer** | `customer_id` is permanent, `card_id` is reissuable | On reissue, customer keeps identity + balance + history. Only the card changes. |
-| **Atomic Transactions** | Every topup/payment wrapped in `BEGIN IMMEDIATE` | Money is never "half-moved" — if any step fails, everything rolls back |
-| **₹100 Limit** | Enforced on payments only, not topups | Blueprint requirement for payments; topups are agent-mediated cash deposits |
-| **Audit Trail** | Every operation (including failures) recorded | Failed payments log the `failure_reason` — complete accountability |
+| **Customer** | Carries the printed QR card and privately enters the PIN | Represented by the card and PIN flows |
+| **Agent** | Registers customers, loads cash, blocks cards, and reissues cards | `/agent`, `/agent/register`, `/agent/topup`, `/agent/manage` |
+| **Merchant** | Runs a small payment terminal and prints a receipt | `/merchant`, `/merchant/pay` |
+| **Admin** | Monitors totals and the live transaction feed | `/admin` |
 
----
+## Payment Flow
+
+```text
+ CUSTOMER                 AGENT COUNTER                 MERCHANT COUNTER
+    │                           │                              │
+    │  identity + cash          │                              │
+    ├──────────────────────────>│                              │
+    │                           │ POST /customers/register     │
+    │                           │ POST /wallet/topup           │
+    │<──── printed QR card ─────│                              │
+    │                           │                              │
+    │                    presents printed card                 │
+    ├─────────────────────────────────────────────────────────>│
+    │                           │                              │
+    │                           │                 scan card / enter ID
+    │                           │                 confirm amount
+    │                           │                 enter PIN
+    │                           │                              │
+    │                           │                 POST /wallet/pay
+    │<─────────────────────────────────────────────────────────│
+    │                    payment result + receipt               │
+    │                           │                              │
+    └───────────────────────────┴──────────────┬───────────────┘
+                                               ▼
+                                      SQLite audit trail
+```
+
+## Why This Works
+
+### Card and customer identity are separate
+
+`customer_id` is permanent. `card_id` is encoded in the QR code and can be blocked or reissued. A reissued card keeps the customer balance and transaction history.
+
+### Money movement is atomic
+
+Top-ups and payments use SQLite transactions with `BEGIN IMMEDIATE`. A failed validation, PIN check, or database write rolls the complete operation back.
+
+### Failure is a first-class result
+
+Wrong PINs, blocked cards, insufficient balance, limit violations, and unavailable merchants are returned with explicit failure reasons and stored in the audit trail.
+
+### The interface is counter-first
+
+The flows use large controls, camera and manual card-entry paths, visible confirmation steps, printable receipts, pre-recorded voice prompts, and responsive layouts for small screens.
+
+## Architecture
+
+```text
+┌─────────────────────────────────────────────────────────────┐
+│                    React 19 + TypeScript                    │
+│                                                             │
+│  Agent Centre     Merchant Counter       Admin Dashboard    │
+│  register         amount / scan / PIN    live totals/feed   │
+│  top-up           receipt                auto-refresh       │
+│  block/reissue                                             │
+└─────────────────────────────┬───────────────────────────────┘
+                              │ fetch(JSON)
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                         FastAPI                             │
+│  customers  wallet  cards  transactions  admin              │
+│  PIN validation  QR generation  atomic transaction service   │
+└─────────────────────────────┬───────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                         SQLite                              │
+│  customers  cards  agents  merchants  transactions          │
+└─────────────────────────────────────────────────────────────┘
+```
+
+The frontend has one shared shell with role-aware navigation. API clients are kept at the boundary, and backend field names are passed through without renaming.
 
 ## Tech Stack
 
 | Layer | Technology |
 |---|---|
-| **Backend** | FastAPI (Python) |
-| **Database** | SQLite (file-based, zero setup) |
-| **Frontend** | React 19 + TypeScript + Vite (single app, role-based routes) |
-| **QR Generation** | `qrcode` Python library |
-| **QR Scanning** | `html5-qrcode` browser library |
-| **PIN Security** | `bcrypt` hashing |
-| **PDF Receipts** | `reportlab` |
-| **Voice Prompts** | Pre-recorded `.mp3` files via HTML `<audio>` |
-| **Deployment** | Backend on Render/Railway, Frontend on Vercel |
+| Frontend | React 19, TypeScript, Vite 8, React Router 7 |
+| UI | Shared TypeScript components and semantic CSS tokens |
+| Backend | FastAPI, Python |
+| Database | SQLite with WAL mode and foreign-key checks |
+| QR generation | Python `qrcode` and Pillow |
+| QR scanning | Browser `html5-qrcode` |
+| PIN security | `bcrypt` hashes; PINs are never printed or persisted in plaintext |
+| Receipts | Browser print layout |
+| Voice feedback | Static MP3 prompts via HTML audio |
+| Translation | Runtime API translation with local cache and English fallback |
 
----
+## Language Support
 
-## Project Structure
+The UI supports English, Hindi, Tamil, and Marathi across the landing page, Agent Centre, Merchant Counter, Admin Dashboard, scanner, forms, keypad, and receipts.
 
+English is the only source copy maintained in code. When another language is selected, the frontend translates the source copy at runtime through `VITE_TRANSLATION_API_URL`. The default endpoint is MyMemory. Custom endpoints must return the same MyMemory-compatible response shape. Successful translations are cached in local storage; if the endpoint is unavailable, the interface remains usable in English.
+
+Marathi also includes five static voice prompts for amount entry, scanning, PIN entry, success, and failure.
+
+To use another MyMemory-compatible translation endpoint:
+
+```bash
+VITE_TRANSLATION_API_URL=https://your-translation-service.example/translate
 ```
-Batwa/
-├── backend/
-│   ├── main.py                  # FastAPI app entry point
-│   ├── database.py              # SQLite schema & connection management
-│   ├── models.py                # Pydantic request/response models
-│   ├── seed.py                  # Test data seeder
-│   ├── test_endpoints.py        # Integration tests (41 checks)
-│   ├── requirements.txt         # Python dependencies
-│   ├── routes/
-│   │   ├── customers.py         # POST /customers/register
-│   │   ├── wallet.py            # POST /wallet/topup, /wallet/pay, GET /wallet/balance
-│   │   ├── cards.py             # POST /cards/block, /cards/reissue
-│   │   ├── transactions.py     # GET /transactions
-│   │   └── admin.py            # GET /admin/stats
-│   └── services/
-│       ├── pin_service.py       # bcrypt PIN hash & verify
-│       ├── qr_service.py        # QR code generation (base64 PNG)
-│       └── txn_service.py       # Atomic transaction engine
-├── frontend/
-│   └── agent-portal/             # React 19 + TypeScript + Vite app
-│       ├── src/                  # Role routes, shared UI, API clients, i18n
-│       ├── public/audio/         # Voice prompts (en/hi/ta) + success/failure tones
-│       ├── tests/                # Vitest unit tests (19 checks)
-│       ├── package.json          # pnpm-managed dependencies and scripts
-│       └── pnpm-lock.yaml        # Reproducible frontend dependency graph
-├── scripts/
-│   ├── warmup.py                 # Pre-demo warm-up (handles Render cold starts)
-│   └── generate_audio.py         # gTTS voice prompt generator
-├── docs/
-│   └── architecture.png          # System architecture diagram
-├── tapwallet-implementation-blueprint.md  # Original blueprint (kept as-is)
-├── MEMORY.md                    # Project progress tracker
-└── README.md
-```
-
----
 
 ## Quick Start
 
-### Install the backend dependencies
+### Requirements
+
+- Node.js 20.19 or newer
+- pnpm 11 or newer
+- Python 3.10 or newer
+
+### Install and seed the backend
 
 ```bash
 cd backend
 python -m venv .venv
 .venv/bin/pip install -r requirements.txt
-python seed.py
+.venv/bin/python seed.py
 cd ..
 ```
 
-On Windows, use `.venv\Scripts\pip` instead of `.venv/bin/pip`.
+On Windows, use `.venv\Scripts\python` and `.venv\Scripts\pip`.
 
-### Start both services
-
-Install the frontend dependencies once, then run the backend and frontend together from the repository root:
+### Install and run both services
 
 ```bash
 pnpm setup:frontend
@@ -164,170 +167,159 @@ pnpm setup:frontend
 pnpm dev
 ```
 
-`pnpm dev` starts the API at `http://localhost:8000` and the frontend at
-`http://localhost:5173`. It uses `backend/.venv` automatically when that
-virtual environment exists. Set `BATWA_PYTHON` if you want to use a different
-Python executable. Press `Ctrl+C` once to stop both services.
+The services start at:
 
-### Start a service separately
+- Frontend: `http://localhost:5173`
+- API: `http://localhost:8000`
+- API documentation: `http://localhost:8000/docs`
+
+The root dev script uses `backend/.venv` automatically when it exists. Set `BATWA_PYTHON` to use another Python executable.
+
+To run one service:
 
 ```bash
-pnpm dev:backend
 pnpm dev:frontend
+pnpm dev:backend
 ```
 
-The API docs are at `http://localhost:8000/docs`.
+## Demo Data
 
-Useful frontend checks:
-
-```bash
-pnpm --dir frontend/agent-portal typecheck
-pnpm --dir frontend/agent-portal test
-pnpm --dir frontend/agent-portal build
-```
-
-### Pre-Demo Warm-Up (for Render free tier)
-
-Render's free tier spins down after 15 minutes of inactivity. Run this ~2 minutes before your demo:
-
-```bash
-python scripts/warmup.py                            # local (default: localhost:8000)
-python scripts/warmup.py https://batwa.onrender.com # deployed URL
-```
-
-The script wakes the backend, exercises all 8 endpoints with a throwaway customer, and prints a colour-coded go/no-go checklist.
-
-### Test Data (from seed.py)
+`backend/seed.py` creates local demo records:
 
 | Type | IDs | Details |
 |---|---|---|
 | Agents | `AGT-001`, `AGT-002` | Float balance: 10,000 each |
 | Merchants | `MER-001`, `MER-002` | Starting balance: 0 |
-| Customers | `CUST-TEST01` to `CUST-TEST05` | PIN: `1234`, Balance: 0 |
-| Cards | `CARD-TEST01` to `CARD-TEST05` | Status: active |
+| Customers | `CUST-TEST01` to `CUST-TEST05` | PIN: `1234`, balance: 0 |
+| Cards | `CARD-TEST01` to `CARD-TEST05` | Active at seed time |
 
----
+Demo merchant switching is available at `/merchant/setup`. It stores only the selected merchant ID in browser session storage.
 
-## API Endpoints
+## API Surface
 
 ### Customer Registration
-```
+
+```text
 POST /customers/register
-Body: { "name", "phone", "pin" (4 digits), "language_pref" (en/hi/ta) }
+Body: { "name", "phone", "pin", "language_pref" }
 Returns: { "customer_id", "card_id", "qr_code_base64", "status" }
 ```
 
-### Wallet Top-up (Agent loads cash)
-```
+`language_pref` accepts `en`, `hi`, `ta`, or `mr`.
+
+### Wallet Top-up
+
+```text
 POST /wallet/topup
 Body: { "agent_id", "card_id", "amount" }
 Returns: { "status", "new_customer_balance", "agent_float_remaining", "txn_id" }
 ```
 
-### Payment (Merchant-initiated)
-```
+### Payment
+
+```text
 POST /wallet/pay
 Body: { "merchant_id", "card_id", "amount", "pin" }
-Returns: { "status", "new_customer_balance", "txn_id" }
-Enforces: Rs.100 per-transaction limit
+Returns: { "status", "new_customer_balance", "txn_id", "failure_reason" }
 ```
 
-### Balance Check
-```
-GET /wallet/balance/{customer_id}
-Returns: { "customer_id", "balance", "card_status" }
-```
+Payments are limited to 100 rupees per transaction.
 
-### Block Card
-```
+### Card Management
+
+```text
 POST /cards/block
 Body: { "card_id" }
-Returns: { "status", "card_status" }
-```
 
-### Reissue Card
-```
 POST /cards/reissue
 Body: { "customer_id" }
-Returns: { "customer_id", "new_card_id", "qr_code_base64", "balance_carried_over" }
 ```
 
-### Transaction History
-```
+### Balance and History
+
+```text
+GET /wallet/balance/{customer_id}
 GET /transactions?customer_id=&agent_id=&merchant_id=
-Returns: { "transactions": [ { "txn_id", "type", "amount", "status", "timestamp", ... } ] }
-```
-
-### Admin Statistics
-```
 GET /admin/stats
-Returns: aggregate balances, card counts, customer count, and transaction count
 ```
 
-### Failure Reasons (closed set)
-`WRONG_PIN` | `INSUFFICIENT_BALANCE` | `BLOCKED_CARD` | `LIMIT_EXCEEDED` | `AGENT_FLOAT_INSUFFICIENT` | `CARD_NOT_FOUND` | `MERCHANT_NOT_FOUND`
+The Admin dashboard refreshes its totals and transaction feed every five seconds.
 
----
+### Failure Reasons
 
-## Implementation Notes
+```text
+WRONG_PIN
+INSUFFICIENT_BALANCE
+BLOCKED_CARD
+LIMIT_EXCEEDED
+AGENT_FLOAT_INSUFFICIENT
+CARD_NOT_FOUND
+MERCHANT_NOT_FOUND
+```
 
-### Card/Customer Separation
-Unlike the original blueprint where `customer_id` doubled as the card ID, we separated these concerns:
-- **`customer_id`** — permanent, never changes (e.g. `CUST-A1B2C3`)
-- **`card_id`** — reissuable, encoded in QR (e.g. `CARD-X7Y8Z9`)
+## Project Structure
 
-This means on reissue, the customer keeps their identity and transaction history. Only the card changes.
+```text
+Batwa/
+├── backend/
+│   ├── main.py                  # FastAPI application entry point
+│   ├── database.py              # SQLite schema and connections
+│   ├── models.py                # Request and response contracts
+│   ├── seed.py                  # Local demo data
+│   ├── test_endpoints.py        # Backend integration checks
+│   ├── requirements.txt         # Backend dependencies
+│   ├── routes/                  # Customer, wallet, card, transaction, admin routes
+│   └── services/                # PIN, QR, and transaction services
+├── frontend/agent-portal/
+│   ├── src/api/                 # Backend integration boundaries
+│   ├── src/components/          # Shared shell and UI primitives
+│   ├── src/i18n/                # English source copy and runtime translation
+│   ├── src/pages/               # Agent, Merchant, Admin, and landing routes
+│   ├── src/styles/              # Design tokens and product styles
+│   ├── public/audio/            # English, Hindi, Tamil, and Marathi prompts
+│   ├── tests/                   # Vitest tests and asset checks
+│   ├── package.json
+│   └── pnpm-lock.yaml
+├── docs/architecture.png        # Architecture diagram
+├── scripts/dev.mjs              # Run frontend and backend together
+├── scripts/warmup.py            # Pre-demo API warm-up
+├── scripts/generate_audio.py    # Static voice prompt generator
+├── .gitignore
+├── package.json
+├── pnpm-lock.yaml
+└── README.md
+```
 
-### Atomic Transactions
-Every topup and payment is wrapped in a single SQLite transaction using `BEGIN IMMEDIATE`. If any step fails (balance check, PIN verify, DB write), the entire operation rolls back — money is never "half-moved."
+Generated files such as `.venv`, `node_modules`, `dist`, `__pycache__`, `.db`, `.env`, and tool state are intentionally ignored.
 
-### Audit Trail
-Every operation (including failures) is recorded in the `transactions` table. Failed payments record the `failure_reason`, giving a complete audit trail.
+## Testing
 
----
+Frontend checks:
 
-## Team
-
-| Person | Role |
-|---|---|
-| **Harsh** | Backend core, database schema, transaction engine, PIN security, project integration lead |
-| **Pratik** | Agent Portal frontend (registration, QR display, top-up, block/reissue) |
-| **Krishna** | Merchant Portal frontend (amount entry, QR scan, PIN entry, success/failure screens) |
-| **Ruchir** | Accessibility layer, language switching, voice prompts, Admin dashboard |
-| **Atharva** | Backend support, receipt generation, integration tests, deployment |
-
----
-
-## Current Progress
-
-| Component | Owner | Status | Notes |
-|---|---|---|---|
-| Backend API (8 endpoints) | Harsh | ✅ Complete | Atomic wallet/card flows, QR generation, PIN security, admin stats |
-| Agent Portal | Pratik | ✅ Complete | Register, QR display, top-up, block/reissue — wired to real backend |
-| Merchant Portal | Krishna | ✅ Complete | Amount entry, QR scan, PIN entry, success/failure screens, demo mode |
-| Shared UI + TypeScript | Krishna | ✅ Complete | React 19 + TS migration, design tokens, reusable components |
-| Accessibility + i18n | Ruchir | ✅ Complete | EN/HI/TA translations, language switcher, key-parity tests |
-| Voice prompts + sound | Ruchir | ✅ Complete | 15 audio clips (5 prompts × 3 languages) + success/failure tones |
-| Admin Dashboard | Ruchir | ✅ Complete | Live transaction feed (5s auto-refresh), running totals, `/admin/stats` |
-| Payment receipt | Ruchir | ✅ Complete | Print-friendly receipt on merchant success screen |
-| Pre-demo warm-up | Harsh | ✅ Complete | `scripts/warmup.py` — 8/8 endpoints, cold-start handling |
-| Architecture diagram | Harsh | ✅ Complete | `docs/architecture.png` + README |
-| Integration tests | Harsh + Atharva | ✅ Complete | 41 backend + 19 frontend tests passing |
-| **Deployment** | **Atharva** | **❌ Pending** | Backend → Render/Railway, Frontend → Vercel |
-
----
-
-## Running Tests
-
-With the server running on port 8000:
 ```bash
-python test_endpoints.py
+pnpm --dir frontend/agent-portal test
+pnpm --dir frontend/agent-portal typecheck
+pnpm --dir frontend/agent-portal build
 ```
 
-Tests cover: registration, topup, payment (success + all failure paths), balance check, card block, reissue, old-card-blocked-after-reissue, new-card-works, transaction history, and admin statistics. **41/41 checks.**
+Backend integration checks require the API to be running on port 8000 and a freshly seeded database:
 
----
+```bash
+rm -f backend/batwa.db backend/batwa.db-journal backend/batwa.db-wal backend/batwa.db-shm
+backend/.venv/bin/python backend/seed.py
+pnpm dev:backend
+```
 
-## License
+In a second terminal:
 
-Hackathon project — Cognizant NPN Nurture Program.
+```bash
+backend/.venv/bin/python backend/test_endpoints.py
+```
+
+The integration suite covers registration, top-ups, successful and failed payments, balances, card blocking, reissue, transaction history, and Admin statistics.
+
+## Boundaries
+
+Batwa is a local-money simulation. It does not connect to a bank, UPI, NFC card, or payment network. The QR card represents a stored wallet identity, and all balances are demo data.
+
+The default translation provider is a public third-party endpoint. Production deployments should configure a managed or self-hosted provider with an appropriate quota, privacy policy, and availability guarantee.

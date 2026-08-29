@@ -19,6 +19,10 @@ const DEFAULT_LABELS = {
   invalid: 'That QR code is not supported.',
   retryCamera: 'Retry camera',
   useCard: 'Use this card',
+  qrLabel: 'QR card scanner',
+  qrNotRecognised: 'QR code not recognised',
+  cameraUnavailable: 'Camera unavailable',
+  or: 'or',
 }
 
 export type QrScannerLabels = Partial<typeof DEFAULT_LABELS>
@@ -243,7 +247,7 @@ export default function QrScanner({
   )
 
   return (
-    <section className="batwa-qr-scanner" aria-label="QR card scanner">
+    <section className="batwa-qr-scanner" aria-label={copy.qrLabel}>
       {showCamera && (
         <>
           <p className="batwa-scanner-instruction">{copy.instruction}</p>
@@ -260,7 +264,7 @@ export default function QrScanner({
           {errorMessage && status !== 'starting' && (
             <StatusPanel
               variant={status === 'invalid' ? 'warning' : 'error'}
-              title={status === 'invalid' ? 'QR code not recognised' : 'Camera unavailable'}
+              title={status === 'invalid' ? copy.qrNotRecognised : copy.cameraUnavailable}
             >
               <p>{errorMessage}</p>
             </StatusPanel>
@@ -274,7 +278,7 @@ export default function QrScanner({
       )}
 
       <div className="batwa-manual-entry">
-        {showCamera && <div className="batwa-divider"><span>or</span></div>}
+        {showCamera && <div className="batwa-divider"><span>{copy.or}</span></div>}
         <form onSubmit={handleManualSubmit}>
           <FormField id="manual-card-id" label={copy.manualLabel} hint={copy.manualHint}>
             <input

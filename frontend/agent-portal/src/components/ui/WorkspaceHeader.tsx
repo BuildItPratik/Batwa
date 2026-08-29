@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import Icon from './Icon'
 import { useLanguage } from '../../i18n/LanguageContext'
 import { getConfiguredAgent } from '../../config/runtime'
@@ -36,12 +37,15 @@ export default function WorkspaceHeader({ pathname, role, merchant }: WorkspaceH
 
   return (
     <header className="workspace-header">
-      <div className="workspace-breadcrumb" aria-label="Breadcrumb">
+      <div className="workspace-breadcrumb" aria-label={copy.common.breadcrumb}>
         <span>{parentName}</span><span aria-hidden="true">/</span><strong>{pageName}</strong>
       </div>
-      <div className="workspace-identity" aria-label={`${copy.workspace[role]} identity`}>
-        <span className="workspace-identity-icon"><Icon name={ROLE_ICONS[role] || 'userPlus'} size={19} /></span>
-        <span><small>{identity.name}</small><strong>{identity.id}</strong></span>
+      <div className="workspace-header-actions">
+        <div className="workspace-identity" aria-label={`${copy.workspace[role]} identity`}>
+          <span className="workspace-identity-icon"><Icon name={ROLE_ICONS[role] || 'userPlus'} size={19} /></span>
+          <span><small>{identity.name}</small><strong>{identity.id}</strong></span>
+        </div>
+        {role !== 'admin' && <Link className="workspace-dashboard-link" to="/admin"><Icon name="receipt" size={18} /><span>{copy.navigation.admin}</span></Link>}
       </div>
     </header>
   )

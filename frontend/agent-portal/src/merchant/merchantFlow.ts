@@ -184,10 +184,10 @@ export function maskCardId(value: unknown): string {
   return 'CARD-••••' + normalized.slice(-2)
 }
 
-export function formatRupees(value: unknown): string {
+export function formatRupees(value: unknown, locale = 'en-IN'): string {
   const amount = Number(value)
   if (!Number.isFinite(amount)) return '₹0.00'
-  return new Intl.NumberFormat('en-IN', {
+  return new Intl.NumberFormat(locale, {
     style: 'currency',
     currency: 'INR',
     minimumFractionDigits: 2,

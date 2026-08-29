@@ -27,5 +27,6 @@ test('result tones exist for success and failure', () => {
 
 test('voice prompt URLs stay on the /audio path and fall back to English', () => {
   assert.equal(voicePromptUrl('hi', 'enter_pin'), '/audio/hi/enter_pin.mp3')
+  assert.equal(voicePromptUrl('mr', 'enter_pin'), '/audio/mr/enter_pin.mp3')
   assert.equal(voicePromptUrl('xx', 'enter_pin'), '/audio/en/enter_pin.mp3')
 })

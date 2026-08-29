@@ -2,12 +2,12 @@
 Batwa — one-time generator for the pre-recorded audio assets (Ruchir).
 
 Produces the static files under frontend/agent-portal/public/audio/ that the
-frontend plays via HTML <audio>. Per the blueprint, playback is pre-recorded
+frontend plays via HTML <audio>. Playback is pre-recorded
 files only — no live text-to-speech at runtime. Re-run this script only if a
 prompt's wording changes, then commit the regenerated files.
 
 Requirements: pip install gTTS   (network needed), plus ffmpeg on PATH.
-Usage:        python scripts/generate_audio.py
+Usage:        python scripts/generate_audio.py [--language mr]
 """
 
 import math
@@ -16,13 +16,14 @@ import struct
 import subprocess
 import tempfile
 import wave
+import argparse
 
 from gtts import gTTS
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 AUDIO_DIR = os.path.join(ROOT, "frontend", "agent-portal", "public", "audio")
 
-# The five prompts from the blueprint (Section 7, Ruchir), per language.
+# The five product prompts, per language.
 # Keys must match VOICE_PROMPT_KEYS in frontend/agent-portal/src/audio/sounds.ts.
 PROMPTS = {
     "en": {
@@ -45,6 +46,13 @@ PROMPTS = {
         "enter_pin": "\u0b89\u0b99\u0bcd\u0b95\u0bb3\u0bcd \u0baa\u0bbf\u0ba9\u0bcd \u0b8e\u0ba3\u0bcd\u0ba3\u0bc8 \u0b89\u0bb3\u0bcd\u0bb3\u0bbf\u0b9f\u0bc1\u0b99\u0bcd\u0b95\u0bb3\u0bcd.",
         "payment_success": "\u0baa\u0ba3\u0bae\u0bcd \u0b9a\u0bc6\u0bb2\u0bc1\u0ba4\u0bcd\u0ba4\u0bc1\u0ba4\u0bb2\u0bcd \u0bb5\u0bc6\u0bb1\u0bcd\u0bb1\u0bbf \u0baa\u0bc6\u0bb1\u0bcd\u0bb1\u0ba4\u0bc1.",
         "payment_failed": "\u0baa\u0ba3\u0bae\u0bcd \u0b9a\u0bc6\u0bb2\u0bc1\u0ba4\u0bcd\u0ba4\u0bc1\u0ba4\u0bb2\u0bcd \u0ba4\u0bcb\u0bb2\u0bcd\u0bb5\u0bbf\u0baf\u0b9f\u0bc8\u0ba8\u0bcd\u0ba4\u0ba4\u0bc1. \u0bae\u0bc0\u0ba3\u0bcd\u0b9f\u0bc1\u0bae\u0bcd \u0bae\u0bc1\u0baf\u0bb1\u0bcd\u0b9a\u0bbf\u0b95\u0bcd\u0b95\u0bb5\u0bc1\u0bae\u0bcd.",
+    },
+    "mr": {
+        "enter_amount": "\u0930\u0915\u094d\u0915\u092e \u092a\u094d\u0930\u0935\u093f\u0937\u094d\u091f \u0915\u0930\u093e.",
+        "scan_card": "\u0924\u0941\u092e\u091a\u0947 \u0915\u093e\u0930\u094d\u0921 \u0938\u094d\u0915\u0945\u0928 \u0915\u0930\u093e.",
+        "enter_pin": "\u0924\u0941\u092e\u091a\u093e \u092a\u093f\u0928 \u092a\u094d\u0930\u0935\u093f\u0937\u094d\u091f \u0915\u0930\u093e.",
+        "payment_success": "\u092a\u0947\u092e\u0947\u0902\u091f \u092f\u0936\u0938\u094d\u0935\u0940 \u091d\u093e\u0932\u0947.",
+        "payment_failed": "\u092a\u0947\u092e\u0947\u0902\u091f \u0905\u092f\u0936\u0938\u094d\u0935\u0940 \u091d\u093e\u0932\u0947. \u0915\u0943\u092a\u092f\u093e \u092a\u0941\u0928\u094d\u0939\u093e \u092a\u094d\u0930\u092f\u0924\u094d\u0928 \u0915\u0930\u093e.",
     },
 }
 
@@ -76,14 +84,23 @@ def wav_to_mp3(src, dest):
 
 
 def main():
+    parser = argparse.ArgumentParser(description="Generate Batwa voice prompts and result tones.")
+    parser.add_argument("--language", choices=sorted(PROMPTS), help="Generate prompts for one language only.")
+    args = parser.parse_args()
+
     # 1. Voice prompts per language.
-    for lang, prompts in PROMPTS.items():
+    prompt_languages = [args.language] if args.language else PROMPTS
+    for lang in prompt_languages:
+        prompts = PROMPTS[lang]
         lang_dir = os.path.join(AUDIO_DIR, lang)
         os.makedirs(lang_dir, exist_ok=True)
         for key, text in prompts.items():
             dest = os.path.join(lang_dir, f"{key}.mp3")
             gTTS(text, lang=lang).save(dest)
             print(f"[OK] {os.path.relpath(dest, ROOT)}")
+
+    if args.language:
+        return
 
     # 2. Result tones (language-independent). Success: rising chime.
     #    Failure: low double buzz. Distinct even without speech.

@@ -1,6 +1,6 @@
 // Admin dashboard data access (Ruchir).
 // GET /transactions is the Section 6 contract endpoint; GET /admin/stats is an
-// additive read-only endpoint documented in MEMORY.md — no shapes changed.
+// additive read-only endpoint — no existing API shapes changed.
 
 import { API_BASE_URL } from '../config/runtime'
 
