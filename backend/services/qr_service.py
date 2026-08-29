@@ -22,7 +22,7 @@ def generate_qr_base64(card_id: str) -> str:
     qr.add_data(card_id)
     qr.make(fit=True)
 
-    img = qr.make_image(fill_color="black", back_color="white")
+    img = qr.make_image(fill_color="black", back_color="white", image_factory=qrcode.image.pil.PilImage)
 
     buffer = io.BytesIO()
     img.save(buffer, format="PNG")

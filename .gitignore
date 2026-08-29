@@ -1,0 +1,45 @@
+# ── Python ────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+*.egg
+dist/
+build/
+.eggs/
+*.whl
+
+# ── SQLite database (regenerated via seed.py) ─────────────
+*.db
+
+# ── Virtual environments ──────────────────────────────────
+venv/
+.venv/
+env/
+.env
+
+# ── Node / Frontend ──────────────────────────────────────
+node_modules/
+.vite/
+.vite-temp/
+
+# ── OS files ──────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# ── IDE / Editor ──────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ── Logs ──────────────────────────────────────────────────
+*.log
+npm-debug.log*
+
+# ── Root-level lockfiles (stale / not needed) ─────────────
+/package-lock.json
+/frontend/package-lock.json
