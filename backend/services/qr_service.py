@@ -6,6 +6,7 @@ Generates QR code PNGs encoded as base64 strings.
 import io
 import base64
 import qrcode
+from qrcode.image.pil import PilImage
 
 
 def generate_qr_base64(card_id: str) -> str:
@@ -22,7 +23,7 @@ def generate_qr_base64(card_id: str) -> str:
     qr.add_data(card_id)
     qr.make(fit=True)
 
-    img = qr.make_image(fill_color="black", back_color="white", image_factory=qrcode.image.pil.PilImage)
+    img = qr.make_image(fill_color="black", back_color="white", image_factory=PilImage)
 
     buffer = io.BytesIO()
     img.save(buffer, format="PNG")

@@ -2,7 +2,7 @@
 
 > This file is the living memory of the project. Every significant action, decision, and milestone is logged here so any team member (or AI agent) can pick up exactly where things left off.
 
-**Last updated:** 2026-08-28, 11:55 PM IST
+**Last updated:** 2026-08-29, 4:05 PM IST
 
 ---
 
@@ -159,12 +159,12 @@
 ## What Needs to Be Done
 
 ### Harsh — Remaining Tasks
-- [ ] Communicate API contract changes (card_id separation) to team at Day 1 sync
+- [x] Communicate API contract changes (card_id separation) to team at Day 1 sync
 - [x] `GET /wallet/balance/{id}` expects `customer_id` — confirmed from the implementation and documented (Decision 1 follow-up); ratify at next sync
-- [ ] Support frontend team with any backend integration issues
+- [x] Support frontend team with any backend integration issues
 - [ ] Add CORS origin restrictions before production deploy (currently allows `*`)
-- [ ] Warm up backend before demo (Render free tier cold starts)
-- [ ] Prepare architecture summary for the pitch closing
+- [x] Warm up backend before demo — `scripts/warmup.py` created and tested (8/8 endpoints pass)
+- [x] Prepare architecture summary for the pitch closing — `docs/architecture.png` + updated README
 
 ### Pratik — Agent Portal (Frontend) ✅ COMPLETE
 - [x] Set up React project with routes (`/agent`)
@@ -178,20 +178,16 @@
 - [ ] Reuse Krishna's `html5-qrcode` component for scan-based card entry on the top-up screen
 - [ ] Day 4: nest `/agent/*` routes under the shared app instead of the standalone router
 
-### Krishna — Merchant Portal (Frontend)
-- [ ] Set up React routes (`/merchant`)
-- [ ] Build amount-entry screen (numeric keypad, large buttons)
-- [ ] Integrate `html5-qrcode` for camera-based QR scanning
-- [ ] Add manual card_id entry as fallback
-- [ ] Build PIN-entry prompt (large numeric keypad, PIN masked as dots)
-- [ ] Build success screen (green, checkmark, amount, new balance)
-- [ ] Build failure screen (red, cross, plain-language reason)
-- [ ] Map failure_reason codes to user-friendly messages:
-  - `WRONG_PIN` → "Incorrect PIN. Please try again."
-  - `INSUFFICIENT_BALANCE` → "Not enough balance."
-  - `BLOCKED_CARD` → "This card has been blocked."
-  - `LIMIT_EXCEEDED` → "Amount exceeds Rs.100 limit."
-- [ ] Wire to `POST /wallet/pay`
+### Krishna — Merchant Portal (Frontend) ✅ COMPLETE (see "Krishna — Batwa Frontend Completion" section below)
+- [x] Set up React routes (`/merchant`)
+- [x] Build amount-entry screen (numeric keypad, large buttons)
+- [x] Integrate `html5-qrcode` for camera-based QR scanning
+- [x] Add manual card_id entry as fallback
+- [x] Build PIN-entry prompt (large numeric keypad, PIN masked as dots)
+- [x] Build success screen (green, checkmark, amount, new balance)
+- [x] Build failure screen (red, cross, plain-language reason)
+- [x] Map failure_reason codes to user-friendly messages
+- [x] Wire to `POST /wallet/pay`
 
 ### Ruchir — Accessibility + Admin Dashboard ✅ COMPLETE (see "Ruchir — Accessibility + Admin" section below)
 - [x] Shared UI kit — delivered by Krishna's shared tokens/components; Ruchir reused them rather than duplicating
@@ -366,3 +362,80 @@ If you are an AI agent picking up this project for a team member:
 - `pnpm test` — **19/19 passed** ✅
 - `pnpm build` ✅
 - Vite dev server smoke-tested at `/` and `/admin` ✅
+
+---
+
+## Harsh — Day 3 Integration Work ✅
+
+**Last updated:** 2026-08-29, 4:05 PM IST
+
+### 1. Pre-Demo Warm-Up Script (`scripts/warmup.py`)
+
+Created an idempotent warm-up script for Render free-tier cold-start handling. The script:
+
+- **Phase 1 — Wake:** Retries the health endpoint (`GET /`) for up to 60 seconds (12 × 5s) until the container is live.
+- **Phase 2 — Warm:** Exercises every API path with a throwaway customer: register → topup → pay → balance → block → reissue → transactions → admin/stats. This ensures all Python imports, SQLite connections, and bcrypt routines are hot in memory.
+- **Phase 3 — Verdict:** Prints a colour-coded go/no-go checklist (8/8 endpoints).
+
+**Usage:**
+```bash
+python scripts/warmup.py                            # default: http://localhost:8000
+python scripts/warmup.py https://batwa.onrender.com # deployed URL
+```
+
+**Tested:** 8/8 endpoints passing on localhost ✅
+
+### 2. QR Service Bugfix (`backend/services/qr_service.py`)
+
+Fixed `AttributeError: module 'qrcode.image' has no attribute 'pil'` that was breaking customer registration (`POST /customers/register`). The submodule `qrcode.image.pil` is not auto-imported by the `qrcode` package — added an explicit `from qrcode.image.pil import PilImage` import.
+
+**Impact:** Without this fix, no new customers could be registered. The bug was introduced during the recent git merge and went unnoticed because the previous test run had a cached import.
+
+### 3. Architecture Diagram (`docs/architecture.png`)
+
+Generated a system architecture diagram showing:
+- Three frontend portals (Agent, Merchant, Admin) with their feature sets
+- FastAPI backend layer with service modules
+- SQLite database with 5-table schema
+- End-to-end payment flow (6 numbered steps)
+
+Embedded in `README.md` under the System Architecture section.
+
+### 4. README.md Rewrite
+
+Comprehensive rewrite of the project README to reflect the actual current state:
+- Architecture diagram + ASCII payment flow
+- Accurate project structure matching the TypeScript migration
+- Full API endpoint documentation with request/response schemas
+- Failure reason code table (closed set)
+- Current progress table (honest per-component status)
+- Quick start instructions for both backend and frontend
+- Team roster and remaining work
+
+### 5. Project Status Assessment
+
+Performed a full codebase scan and cross-referenced against the blueprint's Definition of Done (Section 9):
+
+| # | DoD Requirement | Status |
+|---|---|---|
+| 1 | Customer can register and get scannable QR card | ✅ |
+| 2 | Agent top-up moves cash → digital balance | ✅ |
+| 3 | Merchant payment requires PIN, enforces ₹100 limit, atomic | ✅ |
+| 4 | Block and reissue carry over balance | ✅ |
+| 5 | All failure paths show plain-language messages | ✅ |
+| 6 | Language switch (EN/HI/TA) + voice prompts | ✅ |
+| 7 | Success/failure by color + icon + sound | ✅ |
+| 8 | Receipt (print view) after successful payment | ✅ |
+| 9 | Admin dashboard reflects transactions live | ✅ |
+| 10 | Everything deployed on public URL | ❌ Pending (Atharva) |
+
+**Overall: 9/10 DoD items complete. Only deployment remains.**
+
+### Remaining for the whole team
+
+- [ ] Deploy backend to Render/Railway (Atharva)
+- [ ] Deploy frontend to Vercel (Atharva)
+- [ ] Lock down CORS origins from `*` to deployed URLs (Harsh)
+- [ ] Test deployed endpoints with `scripts/warmup.py` (Harsh + Atharva)
+- [ ] Day 5 pitch slides (Ruchir)
+- [ ] Full demo rehearsal on presentation device (All)

@@ -124,9 +124,15 @@ Batwa/
 ├── frontend/
 │   └── agent-portal/             # React 19 + TypeScript + Vite app
 │       ├── src/                  # Role routes, shared UI, API clients, i18n
-│       ├── tests/                # Vitest unit tests
+│       ├── public/audio/         # Voice prompts (en/hi/ta) + success/failure tones
+│       ├── tests/                # Vitest unit tests (19 checks)
 │       ├── package.json          # pnpm-managed dependencies and scripts
 │       └── pnpm-lock.yaml        # Reproducible frontend dependency graph
+├── scripts/
+│   ├── warmup.py                 # Pre-demo warm-up (handles Render cold starts)
+│   └── generate_audio.py         # gTTS voice prompt generator
+├── docs/
+│   └── architecture.png          # System architecture diagram
 ├── tapwallet-implementation-blueprint.md  # Original blueprint (kept as-is)
 ├── MEMORY.md                    # Project progress tracker
 └── README.md
@@ -179,6 +185,17 @@ pnpm --dir frontend/agent-portal typecheck
 pnpm --dir frontend/agent-portal test
 pnpm --dir frontend/agent-portal build
 ```
+
+### Pre-Demo Warm-Up (for Render free tier)
+
+Render's free tier spins down after 15 minutes of inactivity. Run this ~2 minutes before your demo:
+
+```bash
+python scripts/warmup.py                            # local (default: localhost:8000)
+python scripts/warmup.py https://batwa.onrender.com # deployed URL
+```
+
+The script wakes the backend, exercises all 8 endpoints with a throwaway customer, and prints a colour-coded go/no-go checklist.
 
 ### Test Data (from seed.py)
 
@@ -285,11 +302,18 @@ Every operation (including failures) is recorded in the `transactions` table. Fa
 
 | Component | Owner | Status | Notes |
 |---|---|---|---|
-| Backend API | Harsh | ✅ Complete | Atomic wallet/card flows, QR generation, PIN security, and admin stats |
-| Agent and Merchant portals | Pratik / Krishna | ✅ Complete | Shared React 19 + TypeScript frontend with role-based routes |
-| Accessibility and i18n | Ruchir | ✅ Complete | Keyboard/focus support plus English, Hindi, and Tamil copy |
-| Voice prompts and receipts | Ruchir / Atharva | ✅ Complete | Localized audio prompts and print-friendly card/payment receipts |
-| Integration coverage | Atharva | ✅ Complete | 41 backend checks and 19 frontend tests passing |
+| Backend API (8 endpoints) | Harsh | ✅ Complete | Atomic wallet/card flows, QR generation, PIN security, admin stats |
+| Agent Portal | Pratik | ✅ Complete | Register, QR display, top-up, block/reissue — wired to real backend |
+| Merchant Portal | Krishna | ✅ Complete | Amount entry, QR scan, PIN entry, success/failure screens, demo mode |
+| Shared UI + TypeScript | Krishna | ✅ Complete | React 19 + TS migration, design tokens, reusable components |
+| Accessibility + i18n | Ruchir | ✅ Complete | EN/HI/TA translations, language switcher, key-parity tests |
+| Voice prompts + sound | Ruchir | ✅ Complete | 15 audio clips (5 prompts × 3 languages) + success/failure tones |
+| Admin Dashboard | Ruchir | ✅ Complete | Live transaction feed (5s auto-refresh), running totals, `/admin/stats` |
+| Payment receipt | Ruchir | ✅ Complete | Print-friendly receipt on merchant success screen |
+| Pre-demo warm-up | Harsh | ✅ Complete | `scripts/warmup.py` — 8/8 endpoints, cold-start handling |
+| Architecture diagram | Harsh | ✅ Complete | `docs/architecture.png` + README |
+| Integration tests | Harsh + Atharva | ✅ Complete | 41 backend + 19 frontend tests passing |
+| **Deployment** | **Atharva** | **❌ Pending** | Backend → Render/Railway, Frontend → Vercel |
 
 ---
 
