@@ -2,7 +2,7 @@
 
 **Non-Smartphone Digital Payment System** — Cognizant NPN Nurture Program Hackathon
 
-> Let people without smartphones or bank accounts make small digital payments using a simple printed QR card and a 4-digit PIN.
+> Let people without smartphones or bank accounts make small digital payments using a simple printed QR card.
 
 ---
 
@@ -12,13 +12,15 @@ Millions of people in India — daily-wage workers, elderly citizens, rural resi
 
 ## Our Solution
 
-**Batwa** (Hindi for "wallet") bridges this gap with a familiar 3-step flow:
+**Batwa** bridges this gap with a simple 3-step flow:
 
-1. **Get a Card** — Visit a local Agent shop, provide your name and phone, set a 4-digit PIN → receive a printed QR card
-2. **Load Cash** — Hand cash to the Agent → it's loaded as digital balance on your card
-3. **Pay at Shops** — Merchant scans your QR card → you enter your PIN → payment goes through instantly
+1. **Get a Card** — A customer visits a local Agent (neighborhood recharge shop), provides basic info, and receives a printed QR card
+2. **Load Cash** — The customer hands cash to the Agent, who digitally loads that amount onto the card's balance
+3. **Pay at Shops** — At a merchant, the customer's QR card is scanned, they enter a 4-digit PIN, and payment goes through instantly
 
-No smartphone. No bank account. No app download. Just a card and a PIN.
+Everything is designed for low-literacy users: large buttons, voice prompts in Tamil/Hindi/English, and clear green/red visual indicators.
+
+> **Note:** This is a simulation/demo system — no real bank integration or NFC hardware. QR codes stand in for tap cards, and all balances are demo money.
 
 ---
 
@@ -84,19 +86,17 @@ No smartphone. No bank account. No app download. Just a card and a PIN.
 
 ## Tech Stack
 
-| Layer | Technology | Status |
-|---|---|---|
-| **Backend** | FastAPI (Python 3.10+) | ✅ Complete |
-| **Database** | SQLite (WAL mode, file-based) | ✅ Complete |
-| **Frontend** | React + Vite | ✅ Agent + Merchant portals built |
-| **QR Generation** | `qrcode` + Pillow → base64 PNG | ✅ Complete |
-| **QR Scanning** | `html5-qrcode` in browser | ✅ Complete |
-| **PIN Security** | bcrypt hashing | ✅ Complete |
-| **i18n Framework** | React Context + copy map | 🔶 English done, HI/TA pending |
-| **Voice Prompts** | Pre-recorded `.mp3` via `<audio>` | ❌ Not started |
-| **Admin Dashboard** | React + `/transactions` API | ❌ Not started |
-| **PDF Receipts** | `reportlab` | ❌ Not started |
-| **Deployment** | Render (backend) + Vercel (frontend) | ❌ Not started |
+| Layer | Technology |
+|---|---|
+| **Backend** | FastAPI (Python) |
+| **Database** | SQLite (file-based, zero setup) |
+| **Frontend** | React 19 + TypeScript + Vite (single app, role-based routes) |
+| **QR Generation** | `qrcode` Python library |
+| **QR Scanning** | `html5-qrcode` browser library |
+| **PIN Security** | `bcrypt` hashing |
+| **PDF Receipts** | `reportlab` |
+| **Voice Prompts** | Pre-recorded `.mp3` files via HTML `<audio>` |
+| **Deployment** | Backend on Render/Railway, Frontend on Vercel |
 
 ---
 
@@ -105,49 +105,30 @@ No smartphone. No bank account. No app download. Just a card and a PIN.
 ```
 Batwa/
 ├── backend/
-│   ├── main.py                  # FastAPI app (CORS, lifespan, routes)
-│   ├── database.py              # SQLite schema, WAL mode, atomic txns
+│   ├── main.py                  # FastAPI app entry point
+│   ├── database.py              # SQLite schema & connection management
 │   ├── models.py                # Pydantic request/response models
 │   ├── seed.py                  # Test data seeder
-│   ├── test_endpoints.py        # Integration tests (36/36 passing)
-│   ├── requirements.txt         # Python deps
+│   ├── test_endpoints.py        # Integration tests (41 checks)
+│   ├── requirements.txt         # Python dependencies
 │   ├── routes/
 │   │   ├── customers.py         # POST /customers/register
 │   │   ├── wallet.py            # POST /wallet/topup, /wallet/pay, GET /wallet/balance
 │   │   ├── cards.py             # POST /cards/block, /cards/reissue
-│   │   └── transactions.py     # GET /transactions
+│   │   ├── transactions.py     # GET /transactions
+│   │   └── admin.py            # GET /admin/stats
 │   └── services/
 │       ├── pin_service.py       # bcrypt PIN hash & verify
-│       ├── qr_service.py        # QR code → base64 PNG
+│       ├── qr_service.py        # QR code generation (base64 PNG)
 │       └── txn_service.py       # Atomic transaction engine
-│
-├── frontend/agent-portal/
-│   ├── src/
-│   │   ├── App.jsx              # Router: /, /agent/*, /merchant/*
-│   │   ├── api/
-│   │   │   ├── agentApi.js      # Backend calls for agent ops
-│   │   │   └── merchantApi.js   # Backend calls for payments
-│   │   ├── pages/
-│   │   │   ├── LandingPage.jsx  # Portal selection (Agent / Merchant)
-│   │   │   ├── AgentHome.jsx    # Agent dashboard
-│   │   │   ├── RegisterCustomer.jsx  # Registration form + QR display
-│   │   │   ├── TopUp.jsx        # Cash → digital balance
-│   │   │   ├── BlockReissue.jsx # Card management
-│   │   │   ├── MerchantPortal.jsx    # Full 4-step payment flow
-│   │   │   └── MerchantSetup.jsx     # Merchant ID config
-│   │   ├── components/
-│   │   │   ├── qr/QrScanner.jsx      # Camera QR scan + manual entry
-│   │   │   └── ui/              # Button, FormField, NumericKeypad, etc.
-│   │   ├── i18n/                # Language context + EN copy
-│   │   ├── merchant/            # Payment flow state machine
-│   │   ├── config/              # Runtime config, demo mode
-│   │   └── styles/              # CSS (global, tokens, ui)
-│   └── tests/                   # merchantFlow, merchantApi, merchantDemo
-│
-├── docs/
-│   └── architecture.png         # System architecture diagram
-├── MEMORY.md                    # Living project memory (decisions, progress)
-├── .gitignore
+├── frontend/
+│   └── agent-portal/             # React 19 + TypeScript + Vite app
+│       ├── src/                  # Role routes, shared UI, API clients, i18n
+│       ├── tests/                # Vitest unit tests
+│       ├── package.json          # pnpm-managed dependencies and scripts
+│       └── pnpm-lock.yaml        # Reproducible frontend dependency graph
+├── tapwallet-implementation-blueprint.md  # Original blueprint (kept as-is)
+├── MEMORY.md                    # Project progress tracker
 └── README.md
 ```
 
@@ -155,59 +136,148 @@ Batwa/
 
 ## Quick Start
 
-### Backend
+### Install the backend dependencies
 
 ```bash
 cd backend
-pip install -r requirements.txt
-python seed.py                              # Seed test data
-python -m uvicorn main:app --reload         # http://localhost:8000
+python -m venv .venv
+.venv/bin/pip install -r requirements.txt
+python seed.py
+cd ..
 ```
 
-**API docs:** http://localhost:8000/docs
+On Windows, use `.venv\Scripts\pip` instead of `.venv/bin/pip`.
 
-### Frontend
+### Start both services
+
+Install the frontend dependencies once, then run the backend and frontend together from the repository root:
 
 ```bash
-cd frontend/agent-portal
-npm install
-npm run dev                                 # http://localhost:5173
+pnpm setup:frontend
+[ -f frontend/agent-portal/.env ] || cp frontend/agent-portal/.env.example frontend/agent-portal/.env
+pnpm dev
+```
+
+`pnpm dev` starts the API at `http://localhost:8000` and the frontend at
+`http://localhost:5173`. It uses `backend/.venv` automatically when that
+virtual environment exists. Set `BATWA_PYTHON` if you want to use a different
+Python executable. Press `Ctrl+C` once to stop both services.
+
+### Start a service separately
+
+```bash
+pnpm dev:backend
+pnpm dev:frontend
+```
+
+The API docs are at `http://localhost:8000/docs`.
+
+Useful frontend checks:
+
+```bash
+pnpm --dir frontend/agent-portal typecheck
+pnpm --dir frontend/agent-portal test
+pnpm --dir frontend/agent-portal build
 ```
 
 ### Test Data (from seed.py)
 
 | Type | IDs | Details |
 |---|---|---|
-| Agents | `AGT-001`, `AGT-002` | Float: ₹10,000 each |
-| Merchants | `MER-001`, `MER-002` | Balance: ₹0 |
-| Customers | `CUST-TEST01` – `CUST-TEST05` | PIN: `1234`, Balance: ₹0 |
-| Cards | `CARD-TEST01` – `CARD-TEST05` | Status: active |
+| Agents | `AGT-001`, `AGT-002` | Float balance: 10,000 each |
+| Merchants | `MER-001`, `MER-002` | Starting balance: 0 |
+| Customers | `CUST-TEST01` to `CUST-TEST05` | PIN: `1234`, Balance: 0 |
+| Cards | `CARD-TEST01` to `CARD-TEST05` | Status: active |
 
 ---
 
 ## API Endpoints
 
-| Method | Endpoint | Description |
-|---|---|---|
-| `POST` | `/customers/register` | Register customer → returns `customer_id`, `card_id`, QR code |
-| `POST` | `/wallet/topup` | Agent loads cash → customer balance (requires `agent_id`, `card_id`, `amount`) |
-| `POST` | `/wallet/pay` | Merchant payment → verifies PIN, enforces ₹100 limit, atomic transfer |
-| `GET` | `/wallet/balance/{customer_id}` | Check customer balance and card status |
-| `POST` | `/cards/block` | Block a card (requires `card_id`) |
-| `POST` | `/cards/reissue` | Block old cards, issue new card, carry over balance (requires `customer_id`) |
-| `GET` | `/transactions` | Filterable transaction history (`?customer_id=`, `?agent_id=`, `?merchant_id=`) |
+### Customer Registration
+```
+POST /customers/register
+Body: { "name", "phone", "pin" (4 digits), "language_pref" (en/hi/ta) }
+Returns: { "customer_id", "card_id", "qr_code_base64", "status" }
+```
+
+### Wallet Top-up (Agent loads cash)
+```
+POST /wallet/topup
+Body: { "agent_id", "card_id", "amount" }
+Returns: { "status", "new_customer_balance", "agent_float_remaining", "txn_id" }
+```
+
+### Payment (Merchant-initiated)
+```
+POST /wallet/pay
+Body: { "merchant_id", "card_id", "amount", "pin" }
+Returns: { "status", "new_customer_balance", "txn_id" }
+Enforces: Rs.100 per-transaction limit
+```
+
+### Balance Check
+```
+GET /wallet/balance/{customer_id}
+Returns: { "customer_id", "balance", "card_status" }
+```
+
+### Block Card
+```
+POST /cards/block
+Body: { "card_id" }
+Returns: { "status", "card_status" }
+```
+
+### Reissue Card
+```
+POST /cards/reissue
+Body: { "customer_id" }
+Returns: { "customer_id", "new_card_id", "qr_code_base64", "balance_carried_over" }
+```
+
+### Transaction History
+```
+GET /transactions?customer_id=&agent_id=&merchant_id=
+Returns: { "transactions": [ { "txn_id", "type", "amount", "status", "timestamp", ... } ] }
+```
+
+### Admin Statistics
+```
+GET /admin/stats
+Returns: aggregate balances, card counts, customer count, and transaction count
+```
 
 ### Failure Reasons (closed set)
+`WRONG_PIN` | `INSUFFICIENT_BALANCE` | `BLOCKED_CARD` | `LIMIT_EXCEEDED` | `AGENT_FLOAT_INSUFFICIENT` | `CARD_NOT_FOUND` | `MERCHANT_NOT_FOUND`
 
-| Code | Meaning |
+---
+
+## Implementation Notes
+
+### Card/Customer Separation
+Unlike the original blueprint where `customer_id` doubled as the card ID, we separated these concerns:
+- **`customer_id`** — permanent, never changes (e.g. `CUST-A1B2C3`)
+- **`card_id`** — reissuable, encoded in QR (e.g. `CARD-X7Y8Z9`)
+
+This means on reissue, the customer keeps their identity and transaction history. Only the card changes.
+
+### Atomic Transactions
+Every topup and payment is wrapped in a single SQLite transaction using `BEGIN IMMEDIATE`. If any step fails (balance check, PIN verify, DB write), the entire operation rolls back — money is never "half-moved."
+
+### Audit Trail
+Every operation (including failures) is recorded in the `transactions` table. Failed payments record the `failure_reason`, giving a complete audit trail.
+
+---
+
+## Team
+
+| Person | Role |
 |---|---|
-| `WRONG_PIN` | PIN verification failed |
-| `INSUFFICIENT_BALANCE` | Not enough balance for this payment |
-| `BLOCKED_CARD` | Card has been blocked |
-| `LIMIT_EXCEEDED` | Payment exceeds ₹100 per-transaction limit |
-| `AGENT_FLOAT_INSUFFICIENT` | Agent doesn't have enough float for topup |
-| `CARD_NOT_FOUND` | Card ID doesn't exist |
-| `MERCHANT_NOT_FOUND` | Merchant ID doesn't exist |
+| **Harsh** | Backend core, database schema, transaction engine, PIN security, project integration lead |
+| **Pratik** | Agent Portal frontend (registration, QR display, top-up, block/reissue) |
+| **Krishna** | Merchant Portal frontend (amount entry, QR scan, PIN entry, success/failure screens) |
+| **Ruchir** | Accessibility layer, language switching, voice prompts, Admin dashboard |
+| **Atharva** | Backend support, receipt generation, integration tests, deployment |
 
 ---
 
@@ -215,62 +285,22 @@ npm run dev                                 # http://localhost:5173
 
 | Component | Owner | Status | Notes |
 |---|---|---|---|
-| Backend (all 7 endpoints) | Harsh | ✅ **Complete** | 36/36 integration tests passing |
-| Agent Portal | Pratik | ✅ **Complete** | Register, topup, block/reissue — all wired |
-| Merchant Portal | Pratik | ✅ **Complete** | 4-step flow: amount → QR scan → PIN → result |
-| Landing Page | Pratik | ✅ **Complete** | Portal selection with branding |
-| UI Components | Pratik | ✅ **Complete** | Button, NumericKeypad, FormField, QrScanner, etc. |
-| i18n Framework | Pratik | 🔶 Partial | English done, Hindi/Tamil translations needed |
-| Admin Dashboard | Ruchir | ❌ Not started | Live transaction feed + totals |
-| Voice Prompts | Ruchir | ❌ Not started | Audio clips per language |
-| Receipt Generation | Atharva | ❌ Not started | PDF or print view |
-| Deployment | Atharva | ❌ Not started | Render + Vercel |
+| Backend API | Harsh | ✅ Complete | Atomic wallet/card flows, QR generation, PIN security, and admin stats |
+| Agent and Merchant portals | Pratik / Krishna | ✅ Complete | Shared React 19 + TypeScript frontend with role-based routes |
+| Accessibility and i18n | Ruchir | ✅ Complete | Keyboard/focus support plus English, Hindi, and Tamil copy |
+| Voice prompts and receipts | Ruchir / Atharva | ✅ Complete | Localized audio prompts and print-friendly card/payment receipts |
+| Integration coverage | Atharva | ✅ Complete | 41 backend checks and 19 frontend tests passing |
 
 ---
 
 ## Running Tests
 
-### Backend (with server running)
+With the server running on port 8000:
 ```bash
-cd backend
 python test_endpoints.py
-# 36/36 checks — covers all endpoints + all failure paths
 ```
 
-### Frontend
-```bash
-cd frontend/agent-portal
-npx vitest run
-# merchantFlow, merchantApi, merchantDemo tests
-```
-
----
-
-## Team
-
-| Person | Role | Status |
-|---|---|---|
-| **Harsh** | Backend core — schema, transaction engine, PIN security, API endpoints | ✅ Core done |
-| **Pratik** | Agent Portal + Merchant Portal frontend, UI components, API integration | ✅ Core done |
-| **Krishna** | Merchant Portal support (Pratik built the initial version) | 🔶 Integration |
-| **Ruchir** | Accessibility layer, language switching, voice prompts, Admin dashboard | ❌ Pending |
-| **Atharva** | Receipt generation, deployment, additional QA | ❌ Pending |
-
----
-
-## What's Remaining (Day 4–5)
-
-### Critical for Demo
-1. **Admin Dashboard** — live transaction feed from `GET /transactions`
-2. **Hindi/Tamil translations** — fill in `copy.js` for HI and TA languages
-3. **Voice prompts** — record/source `.mp3` clips, wire to `<audio>` elements
-4. **Deployment** — backend on Render, frontend on Vercel
-
-### Nice-to-Have
-- Receipt PDF generation via `reportlab`
-- QR camera scanning on Agent topup screen
-- CORS origin lockdown (currently `*`)
-- Fraud detection flag on Admin dashboard
+Tests cover: registration, topup, payment (success + all failure paths), balance check, card block, reissue, old-card-blocked-after-reissue, new-card-works, transaction history, and admin statistics. **41/41 checks.**
 
 ---
 

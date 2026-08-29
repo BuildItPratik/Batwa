@@ -161,6 +161,22 @@ check("Has transactions", len(txns) > 0, f"got {len(txns)} transactions")
 # We did: topup, pay success, pay wrong pin, pay limit, pay insuff, block(via card), reissue, pay old blocked, pay new
 print(f"  -> Found {len(txns)} transactions for CUST-TEST01")
 
+# ── 14. Admin stats ──────────────────────────────────
+print("\n14. GET /admin/stats")
+body, status = get("/admin/stats")
+check("Status 200", status == 200)
+check("Has all fields", all(
+    key in body for key in (
+        "cash_digitized", "payments_received", "active_cards",
+        "blocked_cards", "total_customers", "total_transactions",
+    )
+), str(body))
+# This run did one Rs.80 topup — cash_digitized reflects all SUCCESS topups
+check("Cash digitized >= 80", body.get("cash_digitized", 0) >= 80, str(body.get("cash_digitized")))
+# CARD-TEST02 was blocked in step 8, CARD-TEST01 in step 10 (reissue)
+check("Blocked cards >= 2", body.get("blocked_cards", 0) >= 2, str(body.get("blocked_cards")))
+check("Active cards >= 1", body.get("active_cards", 0) >= 1, str(body.get("active_cards")))
+
 # ── Summary ───────────────────────────────────────────────
 print("\n" + "=" * 60)
 print(f"RESULTS: {PASS} passed, {FAIL} failed out of {PASS + FAIL} checks")

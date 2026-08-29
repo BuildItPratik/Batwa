@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+.venv/
+batwa.db-journal
+batwa.db-wal
+batwa.db-shm

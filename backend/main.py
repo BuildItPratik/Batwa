@@ -14,6 +14,7 @@ from routes.customers import router as customers_router
 from routes.wallet import router as wallet_router
 from routes.cards import router as cards_router
 from routes.transactions import router as transactions_router
+from routes.admin import router as admin_router
 
 
 # ---------------------------------------------------------------------------
@@ -53,6 +54,7 @@ app.include_router(customers_router)
 app.include_router(wallet_router)
 app.include_router(cards_router)
 app.include_router(transactions_router)
+app.include_router(admin_router)
 
 
 # Health check
