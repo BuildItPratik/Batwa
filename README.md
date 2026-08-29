@@ -55,12 +55,12 @@ No smartphone. No bank account. No app download. Just a card and a PIN.
        │  8. Enters PIN      │    │ • Atomic txn  │   │
        │─────────────────────┼───>│ • Audit trail │<──│
        │                     │    │               │   │  9. POST /pay
-       │  10. ✅ or ❌       │    └───────┬───────┘   │
+       │  10. ✅ or ❌       │    └───────┬───────┘  │
        │<─────────────────────────────────┼──────────>│
        │                     │            │           │
        │                     │            ▼           │
        │                     │    ┌───────────────┐   │
-       │                     │    │    SQLite DB   │   │
+       │                     │    │    SQLite DB  │   │
        │                     │    │               │   │
        │                     │    │ • customers   │   │
        │                     │    │ • cards       │   │
