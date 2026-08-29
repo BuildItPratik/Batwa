@@ -5,9 +5,12 @@ import Icon from './Icon'
 export interface LanguageMenuProps {
   value: LanguageCode
   onChange: (code: LanguageCode) => void
+  loading?: boolean
+  loadingLabel?: string
+  ariaLabel?: string
 }
 
-export default function LanguageMenu({ value, onChange }: LanguageMenuProps) {
+export default function LanguageMenu({ value, onChange, loading = false, loadingLabel = 'Translating interface…', ariaLabel = 'Choose language' }: LanguageMenuProps) {
   const [open, setOpen] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
   const current = LANGUAGE_OPTIONS.find((option) => option.code === value) || LANGUAGE_OPTIONS[0]
@@ -34,13 +37,14 @@ export default function LanguageMenu({ value, onChange }: LanguageMenuProps) {
 
   return (
     <div className="language-menu" ref={rootRef}>
-      <button className="language-trigger" type="button" aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen((currentOpen) => !currentOpen)}>
+      <button className="language-trigger" type="button" aria-haspopup="menu" aria-expanded={open} aria-busy={loading} title={loading ? loadingLabel : undefined} onClick={() => setOpen((currentOpen) => !currentOpen)}>
         <Icon name="globe" size={20} />
         <span>{current.label}</span>
+        {loading && <span className="language-loading" aria-hidden="true" />}
         <Icon name="chevronDown" size={16} />
       </button>
       {open && (
-        <div className="language-popover" role="menu" aria-label="Choose language">
+        <div className="language-popover" role="menu" aria-label={ariaLabel}>
           {LANGUAGE_OPTIONS.map((option) => (
             <button className={option.code === value ? 'language-option is-selected' : 'language-option'} key={option.code} type="button" role="menuitemradio" aria-checked={option.code === value} onClick={() => choose(option.code)}>
               <span>{option.label}</span>

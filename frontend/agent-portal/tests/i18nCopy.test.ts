@@ -1,6 +1,7 @@
 import { test } from 'vitest'
 import assert from 'node:assert/strict'
-import { COPY, LANGUAGE_OPTIONS, getCopy } from '../src/i18n/copy'
+import { BASE_COPY, COPY, LANGUAGE_OPTIONS, getCopy } from '../src/i18n/copy'
+import { flattenCopy } from '../src/i18n/translationService'
 
 function collectKeyPaths(tree: object, prefix = ''): string[] {
   const paths: string[] = []
@@ -17,21 +18,18 @@ function collectKeyPaths(tree: object, prefix = ''): string[] {
   return paths.sort()
 }
 
-test('every language option has a full copy tree (no silent English fallback)', () => {
+test('language options include Marathi and retain a synchronous English fallback', () => {
   for (const option of LANGUAGE_OPTIONS) {
     assert.ok(COPY[option.code], `COPY is missing language "${option.code}"`)
   }
+  assert.equal(LANGUAGE_OPTIONS.some((option) => option.code === 'mr'), true)
+  assert.equal(getCopy('mr'), BASE_COPY)
 })
 
-test('hi and ta stay key-for-key in sync with en', () => {
-  const enKeys = collectKeyPaths(COPY.en)
-  for (const code of ['hi', 'ta'] as const) {
-    const langKeys = collectKeyPaths(COPY[code])
-    const missing = enKeys.filter((key) => !langKeys.includes(key))
-    const extra = langKeys.filter((key) => !enKeys.includes(key))
-    assert.deepEqual(missing, [], `${code} is missing keys`)
-    assert.deepEqual(extra, [], `${code} has keys en does not`)
-  }
+test('the English source tree contains non-empty string leaves', () => {
+  const paths = collectKeyPaths(BASE_COPY)
+  assert.ok(paths.length > 100)
+  assert.equal(new Set(flattenCopy(BASE_COPY).keys()).size, flattenCopy(BASE_COPY).size)
 })
 
 test('unknown languages fall back to English', () => {

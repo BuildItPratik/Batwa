@@ -8,6 +8,8 @@ export interface NumericKeypadProps {
   masked?: boolean
   disabled?: boolean
   label?: string
+  clearLabel?: string
+  deleteLabel?: string
 }
 
 export default function NumericKeypad({
@@ -18,6 +20,8 @@ export default function NumericKeypad({
   masked = false,
   disabled = false,
   label = 'Numeric keypad',
+  clearLabel = 'Clear value',
+  deleteLabel = 'Delete last digit',
 }: NumericKeypadProps) {
   const keys = allowDecimal ? [...DIGITS, '.', '0', 'backspace'] : [...DIGITS, 'clear', '0', 'backspace']
 
@@ -40,9 +44,9 @@ export default function NumericKeypad({
     <div className="batwa-keypad" role="group" aria-label={label}>
       {keys.map((key) => {
         const isUtility = key === 'clear' || key === 'backspace'
-        const display = key === 'backspace' ? '⌫' : key === 'clear' ? 'Clear' : key
+        const display = key === 'backspace' ? '⌫' : key === 'clear' ? clearLabel : key
         const ariaLabel =
-          key === 'backspace' ? 'Delete last digit' : key === 'clear' ? 'Clear value' : key
+          key === 'backspace' ? deleteLabel : key === 'clear' ? clearLabel : key
 
         return (
           <button
