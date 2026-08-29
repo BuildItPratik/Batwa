@@ -10,6 +10,15 @@ build/
 .eggs/
 *.whl
 
+# Python tooling caches / coverage
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+
 # ── SQLite database (regenerated via seed.py) ─────────────
 *.db
 
@@ -23,6 +32,14 @@ env/
 node_modules/
 .vite/
 .vite-temp/
+*.tsbuildinfo
+.turbo/
+.vercel
+.next/
+
+# Env locals (beyond the generic .env above)
+.env.local
+.env.*.local
 
 # ── OS files ──────────────────────────────────────────────
 .DS_Store
@@ -35,6 +52,9 @@ Desktop.ini
 *.swp
 *.swo
 *~
+
+# ── Tool state (delta session artifacts) ───────────────────
+.delta/
 
 # ── Logs ──────────────────────────────────────────────────
 *.log
