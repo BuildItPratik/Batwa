@@ -7,7 +7,6 @@ from fastapi.security import HTTPAuthorizationCredentials
 
 from services.admin_auth import (
     AdminAuthError,
-    AdminAuthNotConfigured,
     issue_admin_token,
     require_admin,
     verify_admin_token,
@@ -27,10 +26,12 @@ class AdminAuthTests(unittest.TestCase):
             with self.assertRaises(AdminAuthError):
                 issue_admin_token("1357")
 
-    def test_missing_pin_does_not_create_an_open_admin(self):
+    def test_default_pin_works_without_environment_configuration(self):
         with patch.dict(os.environ, {}, clear=True):
-            with self.assertRaises(AdminAuthNotConfigured):
-                issue_admin_token("2468")
+            token, expires_in = issue_admin_token("2468")
+
+        self.assertGreater(expires_in, 0)
+        verify_admin_token(token)
 
     def test_missing_or_invalid_bearer_token_is_rejected(self):
         with self.assertRaises(HTTPException) as missing:

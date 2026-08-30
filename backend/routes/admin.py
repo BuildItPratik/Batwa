@@ -11,7 +11,7 @@ See the root README for the public API overview.
 from fastapi import APIRouter, Depends, HTTPException
 from models import AdminAuthRequest, AdminAuthResponse, AdminStatsResponse
 from database import get_db_readonly
-from services.admin_auth import AdminAuthError, AdminAuthNotConfigured, issue_admin_token, require_admin
+from services.admin_auth import AdminAuthError, issue_admin_token, require_admin
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
 
@@ -20,8 +20,6 @@ router = APIRouter(prefix="/admin", tags=["Admin"])
 def authenticate(request: AdminAuthRequest):
     try:
         access_token, expires_in = issue_admin_token(request.pin)
-    except AdminAuthNotConfigured:
-        raise HTTPException(status_code=503, detail="Admin access is not configured.")
     except AdminAuthError:
         raise HTTPException(status_code=401, detail="Invalid admin PIN.")
 

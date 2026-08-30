@@ -303,12 +303,11 @@ pnpm --dir frontend/agent-portal typecheck
 pnpm --dir frontend/agent-portal build
 ```
 
-Backend integration checks require the API to be running on port 8000, `BATWA_ADMIN_PIN` to be set, and a freshly seeded database:
+Backend integration checks require the API to be running on port 8000 and a freshly seeded database:
 
 ```bash
 rm -f backend/batwa.db backend/batwa.db-journal backend/batwa.db-wal backend/batwa.db-shm
 backend/.venv/bin/python backend/seed.py
-export BATWA_ADMIN_PIN=2468
 pnpm dev:backend
 ```
 
@@ -320,7 +319,7 @@ backend/.venv/bin/python backend/test_endpoints.py
 
 The integration suite covers registration, top-ups, successful and failed payments, balances, card blocking, reissue, transaction history, and Admin statistics.
 
-The admin dashboard at `/admin` requires the server-side PIN configured with `BATWA_ADMIN_PIN`. The PIN is exchanged for a short-lived bearer token; both `/transactions` and `/admin/stats` reject unauthenticated requests. Copy `backend/.env.example` for the optional token settings. Set `VITE_BASE_PATH` when serving the frontend below a subpath so links and assets remain inside that deployment path.
+The admin dashboard at `/admin` uses the demo PIN `2468` by default. Set `BATWA_ADMIN_PIN` to override it in a deployment. The PIN is exchanged for a short-lived bearer token; both `/transactions` and `/admin/stats` reject unauthenticated requests. Copy `backend/.env.example` for the optional token settings. Set `VITE_BASE_PATH` when serving the frontend below a subpath so links and assets remain inside that deployment path.
 
 ## Boundaries
 

@@ -19,6 +19,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 
 ADMIN_PIN_ENV = "BATWA_ADMIN_PIN"
+DEFAULT_ADMIN_PIN = "2468"
 TOKEN_SECRET_ENV = "BATWA_ADMIN_TOKEN_SECRET"
 TOKEN_TTL_ENV = "BATWA_ADMIN_TOKEN_TTL_SECONDS"
 DEFAULT_TOKEN_TTL_SECONDS = 3600
@@ -31,15 +32,8 @@ class AdminAuthError(Exception):
     """Base error for expected admin authentication failures."""
 
 
-class AdminAuthNotConfigured(AdminAuthError):
-    """Raised when the server has no configured admin PIN."""
-
-
 def _configured_pin() -> str:
-    pin = os.getenv(ADMIN_PIN_ENV, "").strip()
-    if not pin:
-        raise AdminAuthNotConfigured
-    return pin
+    return os.getenv(ADMIN_PIN_ENV, DEFAULT_ADMIN_PIN).strip() or DEFAULT_ADMIN_PIN
 
 
 def _token_ttl_seconds() -> int:
