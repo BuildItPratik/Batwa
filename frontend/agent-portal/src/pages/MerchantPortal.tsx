@@ -30,6 +30,7 @@ import {
   sanitizeAmountInput,
 } from '../merchant/merchantFlow'
 import Icon from '../components/ui/Icon'
+import Receipt from '../components/receipt/Receipt'
 import type { ReactNode, Ref } from 'react'
 import type { Copy } from '../i18n/copy'
 import type { FailureCode, PayResponse, ValidationErrorCode } from '../merchant/merchantFlow'
@@ -238,18 +239,17 @@ export default function MerchantPortal({ merchantId, merchantName }: MerchantPor
         <StatusPanel variant="success" title={copy.success.message}>
            <div className="merchant-result-details"><div><span>{copy.success.amount}</span><strong>{formatRupees(state.submittedAmount, locale)}</strong></div><div><span>{copy.success.transaction}</span><strong>{response.txn_id}</strong></div>{typeof response.new_customer_balance === 'number' && <div><span>{copy.success.balance}</span><strong>{formatRupees(response.new_customer_balance, locale)}</strong></div>}</div>
         </StatusPanel>
-        <section className="payment-receipt" aria-label={copy.receipt.title}>
-          <header><span className="payment-receipt-brand">बटवा</span><strong>{copy.receipt.title}</strong></header>
-          <dl>
-            <div><dt>{copy.receipt.merchant}</dt><dd>{merchantName} · {merchantId}</dd></div>
-             <div><dt>{copy.receipt.date}</dt><dd>{receiptDate.toLocaleString(locale)}</dd></div>
-            <div><dt>{copy.receipt.txnId}</dt><dd>{response.txn_id}</dd></div>
-            <div><dt>{copy.receipt.card}</dt><dd>{maskCardId(state.submittedCardId)}</dd></div>
-             <div><dt>{copy.receipt.amount}</dt><dd>{formatRupees(state.submittedAmount, locale)}</dd></div>
-             {typeof response.new_customer_balance === 'number' && <div><dt>{copy.receipt.newBalance}</dt><dd>{formatRupees(response.new_customer_balance, locale)}</dd></div>}
-          </dl>
-          <footer>{copy.receipt.footer}</footer>
-        </section>
+        <Receipt
+          merchantName={merchantName}
+          merchantId={merchantId}
+          transactionId={response.txn_id}
+          cardId={state.submittedCardId}
+          amount={state.submittedAmount}
+          newCustomerBalance={response.new_customer_balance}
+          date={receiptDate}
+          labels={copy.receipt}
+          locale={locale}
+        />
         <p className="merchant-success-note">{merchantName} · {merchantId}</p>
         <div className="merchant-actions"><Button variant="secondary" onClick={printReceipt}>{copy.receipt.print}</Button><Button onClick={startNewPayment}>{copy.common.newPayment}</Button></div>
       </StepFrame>
