@@ -57,7 +57,7 @@ Batwa turns a printed card into a small, assisted wallet:
     │                           │                              │
     │                           │                 POST /wallet/pay
     │<─────────────────────────────────────────────────────────│
-    │                    payment result + receipt               │
+    │                    payment result + receipt              │
     │                           │                              │
     └───────────────────────────┴──────────────┬───────────────┘
                                                ▼
@@ -91,14 +91,14 @@ The flows use large controls, camera and manual card-entry paths, visible confir
 │  Agent Centre     Merchant Counter       Admin Dashboard    │
 │  register         amount / scan / PIN    live totals/feed   │
 │  top-up           receipt                auto-refresh       │
-│  block/reissue                                             │
+│  block/reissue                                              │
 └─────────────────────────────┬───────────────────────────────┘
                               │ fetch(JSON)
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                         FastAPI                             │
 │  customers  wallet  cards  transactions  admin              │
-│  PIN validation  QR generation  atomic transaction service   │
+│  PIN validation  QR generation  atomic transaction service  │
 └─────────────────────────────┬───────────────────────────────┘
                               │
                               ▼
