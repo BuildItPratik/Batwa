@@ -210,6 +210,8 @@ h1, h2, h3, p { overflow-wrap: anywhere; }
   padding-top: clamp(1.8rem, 3vw, 2.35rem);
 }
 
+.landing-topbar { position: relative; z-index: 3; }
+
 .landing-page::before {
   background:
     linear-gradient(90deg, transparent 0%, var(--hero-veil-soft) 38%, var(--hero-veil-warm) 68%, var(--hero-veil-deep) 100%),
@@ -639,8 +641,8 @@ h1, h2, h3, p { overflow-wrap: anywhere; }
 
 .landing-admin-link { display: inline-block; margin-top: 0.8rem; color: var(--hero-body, var(--batwa-ink-muted)); font-size: 0.85rem; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
 .landing-admin-link:hover { color: var(--hero-ink, var(--batwa-ink)); }
-.landing-admin-button { display: inline-flex; min-height: 42px; align-items: center; border: 1px solid rgb(255 253 247 / 72%); border-radius: 999px; background: rgb(41 68 95 / 84%); color: #fffdf7; padding: 0.5rem 0.85rem; font-size: 0.78rem; font-weight: 800; text-decoration: none; box-shadow: 0 5px 18px rgb(35 25 18 / 16%); transition: transform var(--batwa-motion), background var(--batwa-motion); }
-.landing-admin-button:hover { background: var(--batwa-terracotta); transform: translateY(-1px); }
+.landing-admin-button { position: relative; z-index: 3; border-radius: 9px; font-size: 0.78rem; }
+.landing-admin-button:hover { border-color: var(--batwa-terracotta); color: var(--batwa-terracotta-dark); }
 
 /* ── Mobile top bar tools (language menu reachable without the sidebar) ─── */
 
