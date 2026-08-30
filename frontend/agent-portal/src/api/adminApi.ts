@@ -4,6 +4,8 @@
 
 import { API_BASE_URL } from '../config/runtime'
 
+const ADMIN_TOKEN_KEY = 'batwa.adminToken'
+
 export class AdminApiError extends Error {
   status: number | null
 
@@ -43,10 +45,12 @@ export interface AdminStats {
   total_transactions: number
 }
 
-async function get<T>(path: string): Promise<T> {
+async function get<T>(path: string, token?: string): Promise<T> {
   let response: Response
   try {
-    response = await fetch(API_BASE_URL + path)
+    response = await fetch(API_BASE_URL + path, {
+      headers: adminHeaders(token),
+    })
   } catch {
     throw new AdminApiError('Could not reach the server.')
   }
@@ -62,10 +66,61 @@ async function get<T>(path: string): Promise<T> {
   return data
 }
 
-export function getTransactions(): Promise<TransactionsResponse> {
-  return get<TransactionsResponse>('/transactions')
+function adminHeaders(token?: string): Record<string, string> {
+  const accessToken = token || getAdminToken()
+  return accessToken ? { Authorization: `Bearer ${accessToken}` } : {}
 }
 
-export function getAdminStats(): Promise<AdminStats> {
-  return get<AdminStats>('/admin/stats')
+export function getAdminToken(): string | null {
+  try {
+    return window.sessionStorage.getItem(ADMIN_TOKEN_KEY)
+  } catch {
+    return null
+  }
+}
+
+export function clearAdminToken() {
+  try {
+    window.sessionStorage.removeItem(ADMIN_TOKEN_KEY)
+  } catch {
+    // Embedded previews may deny session storage.
+  }
+}
+
+export async function authenticateAdmin(pin: string): Promise<string> {
+  let response: Response
+  try {
+    response = await fetch(API_BASE_URL + '/admin/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pin }),
+    })
+  } catch {
+    throw new AdminApiError('Could not reach the server.')
+  }
+
+  let data: { access_token?: string; detail?: string }
+  try {
+    data = (await response.json()) as { access_token?: string; detail?: string }
+  } catch {
+    throw new AdminApiError('The server sent an unexpected response.', response.status)
+  }
+  if (!response.ok || !data.access_token) {
+    throw new AdminApiError(data.detail || 'Admin authentication failed.', response.status)
+  }
+
+  try {
+    window.sessionStorage.setItem(ADMIN_TOKEN_KEY, data.access_token)
+  } catch {
+    // The current session can still use the token from memory if storage is unavailable.
+  }
+  return data.access_token
+}
+
+export function getTransactions(token?: string): Promise<TransactionsResponse> {
+  return get<TransactionsResponse>('/transactions', token)
+}
+
+export function getAdminStats(token?: string): Promise<AdminStats> {
+  return get<AdminStats>('/admin/stats', token)
 }

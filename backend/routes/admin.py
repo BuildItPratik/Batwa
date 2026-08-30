@@ -1,5 +1,6 @@
 """
 Batwa — Admin Routes
+POST /admin/auth
 GET /admin/stats
 
 Read-only aggregates for the Admin dashboard (Ruchir).
@@ -7,15 +8,32 @@ Additive endpoint — no Section 6 contract shapes were changed.
 See the root README for the public API overview.
 """
 
-from fastapi import APIRouter
-from models import AdminStatsResponse
+from fastapi import APIRouter, Depends, HTTPException
+from models import AdminAuthRequest, AdminAuthResponse, AdminStatsResponse
 from database import get_db_readonly
+from services.admin_auth import AdminAuthError, AdminAuthNotConfigured, issue_admin_token, require_admin
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
 
 
+@router.post("/auth", response_model=AdminAuthResponse)
+def authenticate(request: AdminAuthRequest):
+    try:
+        access_token, expires_in = issue_admin_token(request.pin)
+    except AdminAuthNotConfigured:
+        raise HTTPException(status_code=503, detail="Admin access is not configured.")
+    except AdminAuthError:
+        raise HTTPException(status_code=401, detail="Invalid admin PIN.")
+
+    return AdminAuthResponse(
+        access_token=access_token,
+        token_type="bearer",
+        expires_in=expires_in,
+    )
+
+
 @router.get("/stats", response_model=AdminStatsResponse)
-def get_stats():
+def get_stats(_: None = Depends(require_admin)):
     """Running totals for the admin dashboard:
     cash converted to digital, payments received, card counts."""
     with get_db_readonly() as conn:

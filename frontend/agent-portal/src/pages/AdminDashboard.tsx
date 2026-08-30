@@ -1,9 +1,9 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
 import { useLanguage } from '../i18n/LanguageContext'
-import { getAdminStats, getTransactions, type AdminStats, type TransactionItem } from '../api/adminApi'
+import { AdminApiError, authenticateAdmin, clearAdminToken, getAdminStats, getAdminToken, getTransactions, type AdminStats, type TransactionItem } from '../api/adminApi'
 import type { FailureCopy } from '../i18n/copy'
 import { formatRupees } from '../merchant/merchantFlow'
-import { Button, Icon, StatusPanel } from '../components/ui/index'
+import { Button, FormField, Icon, StatusPanel } from '../components/ui/index'
 
 const REFRESH_MS = 5000
 const FEED_LIMIT = 30
@@ -24,6 +24,10 @@ function formatTime(value: string | null, locale: string): string {
 export default function AdminDashboard() {
   const { copy, language } = useLanguage()
   const locale = `${language}-IN`
+  const [adminToken, setAdminToken] = useState(getAdminToken)
+  const [pin, setPin] = useState('')
+  const [authError, setAuthError] = useState<string | null>(null)
+  const [authenticating, setAuthenticating] = useState(false)
   const [stats, setStats] = useState<AdminStats | null>(null)
   const [transactions, setTransactions] = useState<TransactionItem[] | null>(null)
   const [failed, setFailed] = useState(false)
@@ -34,23 +38,86 @@ export default function AdminDashboard() {
     if (inFlightRef.current) return
     inFlightRef.current = true
     try {
-      const [nextStats, nextTxns] = await Promise.all([getAdminStats(), getTransactions()])
+      const [nextStats, nextTxns] = await Promise.all([getAdminStats(adminToken || undefined), getTransactions(adminToken || undefined)])
       setStats(nextStats)
       setTransactions(nextTxns.transactions || [])
       setLastUpdated(new Date())
       setFailed(false)
-    } catch {
+    } catch (error) {
+      if (error instanceof AdminApiError && error.status === 401) {
+        clearAdminToken()
+        setAdminToken(null)
+        setAuthError(copy.admin.sessionExpired)
+        return
+      }
       setFailed(true) // keep showing the last good data; the interval retries
     } finally {
       inFlightRef.current = false
     }
-  }, [])
+  }, [adminToken, copy.admin.sessionExpired])
 
   useEffect(() => {
+    if (!adminToken) return
     refresh()
     const timer = window.setInterval(refresh, REFRESH_MS)
     return () => window.clearInterval(timer)
-  }, [refresh])
+  }, [adminToken, refresh])
+
+  async function handleAuthenticate(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setAuthenticating(true)
+    setAuthError(null)
+    try {
+      const token = await authenticateAdmin(pin)
+      setAdminToken(token)
+      setPin('')
+    } catch (error) {
+      if (error instanceof AdminApiError && error.status === 503) {
+        setAuthError(copy.admin.authUnavailable)
+      } else if (error instanceof AdminApiError && error.status === 401) {
+        setAuthError(copy.admin.invalidPin)
+      } else {
+        setAuthError(error instanceof Error ? error.message : copy.admin.invalidPin)
+      }
+    } finally {
+      setAuthenticating(false)
+    }
+  }
+
+  if (!adminToken) {
+    return (
+      <div className="admin-page admin-auth-page">
+        <div className="admin-auth-card">
+          <p className="batwa-eyebrow">{copy.admin.authEyebrow}</p>
+          <h1>{copy.admin.authTitle}</h1>
+          <p className="admin-description">{copy.admin.authDescription}</p>
+          {authError && <StatusPanel variant="error" title={authError} />}
+          <form className="batwa-form" onSubmit={handleAuthenticate}>
+            <FormField id="admin-pin" label={copy.admin.pinLabel} hint={copy.admin.pinHint}>
+              <input
+                type="password"
+                inputMode="numeric"
+                autoComplete="current-password"
+                maxLength={12}
+                pattern="\d{4,12}"
+                value={pin}
+                onChange={(event) => setPin(event.target.value.replace(/\D/g, '').slice(0, 12))}
+                required
+              />
+            </FormField>
+            <Button type="submit" disabled={authenticating || !/^\d{4,12}$/.test(pin)}>
+              {authenticating ? copy.common.processing : copy.admin.signIn}
+            </Button>
+          </form>
+        </div>
+      </div>
+    )
+  }
+
+  function handleLock() {
+    clearAdminToken()
+    setAdminToken(null)
+  }
 
   const totals: { key: 'cashDigitized' | 'paymentsReceived' | 'activeCards' | 'blockedCards'; icon: string; value: string | null }[] = [
     { key: 'cashDigitized', icon: 'cash', value: stats ? formatRupees(stats.cash_digitized, locale) : null },
@@ -75,7 +142,10 @@ export default function AdminDashboard() {
             <span>{copy.admin.live}</span>
             {lastUpdated && <small>{copy.admin.updated} · {lastUpdated.toLocaleTimeString(locale)}</small>}
           </div>
-          <Button variant="quiet" onClick={refresh}>{copy.admin.refresh}</Button>
+          <div className="admin-refresh-actions">
+            <Button variant="quiet" onClick={refresh}>{copy.admin.refresh}</Button>
+            <Button variant="quiet" onClick={handleLock}>{copy.admin.lock}</Button>
+          </div>
         </div>
       </div>
 

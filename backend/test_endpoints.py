@@ -5,6 +5,7 @@ Run while the server is running on port 8000.
 
 import urllib.request
 import json
+import os
 import sys
 
 BASE = "http://127.0.0.1:8000"
@@ -26,9 +27,13 @@ def post(path, data):
         return json.loads(e.read()), e.code
 
 
-def get(path):
-    resp = urllib.request.urlopen(f"{BASE}{path}")
-    return json.loads(resp.read()), resp.status
+def get(path, headers=None):
+    req = urllib.request.Request(f"{BASE}{path}", headers=headers or {})
+    try:
+        resp = urllib.request.urlopen(req)
+        return json.loads(resp.read()), resp.status
+    except urllib.error.HTTPError as e:
+        return json.loads(e.read()), e.code
 
 
 def check(name, condition, detail=""):
@@ -153,8 +158,14 @@ check("New card SUCCESS", body.get("status") == "SUCCESS", str(body))
 check("Balance = 30", body.get("new_customer_balance") == 30, f"got {body.get('new_customer_balance')}")
 
 # ── 13. Transaction history ───────────────────────────────
+print("\n13. POST /admin/auth")
+body, status = post("/admin/auth", {"pin": os.getenv("BATWA_ADMIN_PIN", "2468")})
+check("Admin auth succeeds", status == 200 and "access_token" in body, str(body))
+ADMIN_TOKEN = body.get("access_token", "")
+ADMIN_HEADERS = {"Authorization": f"Bearer {ADMIN_TOKEN}"}
+
 print("\n13. GET /transactions?customer_id=CUST-TEST01")
-body, status = get("/transactions?customer_id=CUST-TEST01")
+body, status = get("/transactions?customer_id=CUST-TEST01", headers=ADMIN_HEADERS)
 check("Status 200", status == 200)
 txns = body.get("transactions", [])
 check("Has transactions", len(txns) > 0, f"got {len(txns)} transactions")
@@ -163,7 +174,7 @@ print(f"  -> Found {len(txns)} transactions for CUST-TEST01")
 
 # ── 14. Admin stats ──────────────────────────────────
 print("\n14. GET /admin/stats")
-body, status = get("/admin/stats")
+body, status = get("/admin/stats", headers=ADMIN_HEADERS)
 check("Status 200", status == 200)
 check("Has all fields", all(
     key in body for key in (

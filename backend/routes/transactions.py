@@ -3,10 +3,11 @@ Batwa — Transaction History Route
 GET /transactions
 """
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Depends, Query
 from typing import Optional
 from models import TransactionItem, TransactionsResponse
 from database import get_db_readonly
+from services.admin_auth import require_admin
 
 router = APIRouter(tags=["Transactions"])
 
@@ -16,6 +17,7 @@ def list_transactions(
     customer_id: Optional[str] = Query(None),
     agent_id: Optional[str] = Query(None),
     merchant_id: Optional[str] = Query(None),
+    _: None = Depends(require_admin),
 ):
     """
     Return filtered transaction history.

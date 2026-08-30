@@ -38,4 +38,5 @@
   --batwa-space-7: 3rem;
   --batwa-focus: #174f75;
   --batwa-motion: 180ms ease;
+  --batwa-hero-image: url('/assets/batwa-bazaar-hero.webp');
 }
