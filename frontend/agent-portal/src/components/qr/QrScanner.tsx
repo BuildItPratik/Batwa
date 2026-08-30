@@ -326,29 +326,39 @@ export default function QrScanner({
       )}
 
       <div className="batwa-manual-entry">
-  {showCamera && <div className="batwa-divider"><span>{copy.or}</span></div>}
-  <div>
-    <FormField id="manual-card-id" label={copy.manualLabel} hint={copy.manualHint}>
-      <input
-        type="text"
-        value={manualValue}
-        onChange={(event) => setManualValue(event.target.value)}
-        placeholder={copy.manualPlaceholder}
-        autoComplete="off"
-        spellCheck="false"
-        autoCapitalize="characters"
-      />
-    </FormField>
-    <Button
-      variant="secondary"
-      type="button"
-      disabled={!manualValue.trim()}
-      onClick={() => handleValue(manualValue)}
-    >
-      {copy.useCard}
-    </Button>
-  </div>
-</div>
+        {showCamera && (
+          <div className="batwa-divider">
+            <span>{copy.or}</span>
+          </div>
+        )}
+        <div className="batwa-manual-entry-fields">
+          <FormField id="manual-card-id" label={copy.manualLabel} hint={copy.manualHint}>
+            <input
+              type="text"
+              value={manualValue}
+              onChange={(event) => setManualValue(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter') {
+                  event.preventDefault()
+                  handleValue(manualValue)
+                }
+              }}
+              placeholder={copy.manualPlaceholder}
+              autoComplete="off"
+              spellCheck="false"
+              autoCapitalize="characters"
+            />
+          </FormField>
+          <Button
+            variant="secondary"
+            type="button"
+            disabled={!manualValue.trim()}
+            onClick={() => handleValue(manualValue)}
+          >
+            {copy.useCard}
+          </Button>
+        </div>
+      </div>
     </section>
   )
 }
