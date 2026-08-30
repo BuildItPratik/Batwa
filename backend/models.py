@@ -104,6 +104,18 @@ class TransactionsResponse(BaseModel):
     transactions: List[TransactionItem]
 
 
+# ── Admin Authentication ─────────────────────────────────────────────────
+
+class AdminAuthRequest(BaseModel):
+    pin: str = Field(..., min_length=4, max_length=12, pattern=r"^\d{4,12}$")
+
+
+class AdminAuthResponse(BaseModel):
+    access_token: str
+    token_type: str
+    expires_in: int
+
+
 # ── Admin Stats (additive — used by the /admin dashboard only) ───────────
 
 class AdminStatsResponse(BaseModel):

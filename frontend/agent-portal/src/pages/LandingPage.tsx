@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import BatwaBrand from '../components/ui/BatwaBrand'
 import { useLanguage } from '../i18n/LanguageContext'
+import { joinAppPath } from '../config/appBase'
 
 function StepIcon({ kind }: { kind: string }) {
   if (kind === 'wallet') return <svg viewBox="0 0 48 36" aria-hidden="true"><path d="M5 9h31a5 5 0 0 1 5 5v15a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3h27" /><path d="M4 10h34a4 4 0 0 1 4 4v5H30a5 5 0 0 1 0-10h12M30 16h2" /></svg>
@@ -18,8 +19,10 @@ export default function LandingPage() {
   return (
     <main className="landing-page" aria-label={copy.landing.ariaLabel}>
       <div className="landing-topbar">
-        <a href="/" aria-label={copy.common.returnHome}><BatwaBrand descriptor={copy.landing.descriptor} /></a>
-        <Link className="landing-admin-button" to="/admin">{copy.landing.liveDashboard}</Link>
+        <a href={joinAppPath('/')} aria-label={copy.common.returnHome}><BatwaBrand descriptor={copy.landing.descriptor} /></a>
+        <a className="batwa-button batwa-button-secondary batwa-button-small landing-admin-button" href={joinAppPath('/admin')}>
+          {copy.landing.liveDashboard}
+        </a>
       </div>
       <section className="landing-stage" aria-labelledby="landing-title">
         <div className="landing-copy">

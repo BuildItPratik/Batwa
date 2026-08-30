@@ -7,6 +7,7 @@ import BatwaBrand from './BatwaBrand'
 import Icon from './Icon'
 import LanguageMenu from './LanguageMenu'
 import type { ReactNode } from 'react'
+import { joinAppPath } from '../../config/appBase'
 
 export type WorkspaceRole = 'agent' | 'merchant' | 'admin'
 
@@ -30,7 +31,7 @@ export default function WorkspaceShell({ children }: { children: ReactNode }) {
       <WorkspaceSidebar role={role} language={language} onLanguageChange={setLanguage} loading={isTranslating} translationError={translationError} demoMode={DEMO_MODE} onSwitchMerchant={() => navigate('/merchant/setup')} />
       <div className="workspace-content">
         <header className="workspace-mobilebar">
-          <a href="/" aria-label={copy.workspace.backHome}><BatwaBrand compact /></a>
+          <a href={joinAppPath('/')} aria-label={copy.workspace.backHome}><BatwaBrand compact /></a>
           <div className="workspace-mobile-context"><span>{copy.workspace[role]}</span><strong>{mobileContextId}</strong></div>
           <div className="workspace-mobile-tools">
             <LanguageMenu value={language} onChange={setLanguage} loading={isTranslating} loadingLabel={copy.common.translating} ariaLabel={copy.common.chooseLanguage} />
