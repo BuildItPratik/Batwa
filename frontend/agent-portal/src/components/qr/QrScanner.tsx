@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useId, useRef, useState, type FormEvent } from 'react'
+import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import { Html5Qrcode } from 'html5-qrcode'
 import Button from '../ui/Button'
 import FormField from '../ui/FormField'
@@ -39,10 +39,18 @@ type ScannerStatus =
   | CameraErrorKind
 
 function errorKind(error: unknown): CameraErrorKind {
-  const message = String((error as { message?: string })?.message || error || '').toLowerCase()
-  if (message.includes('notallowed') || message.includes('permission') || message.includes('denied')) {
+  const message = String(
+    (error as { message?: string })?.message || error || '',
+  ).toLowerCase()
+
+  if (
+    message.includes('notallowed') ||
+    message.includes('permission') ||
+    message.includes('denied')
+  ) {
     return 'permission-denied'
   }
+
   if (
     message.includes('notfound') ||
     message.includes('no camera') ||
@@ -50,19 +58,21 @@ function errorKind(error: unknown): CameraErrorKind {
   ) {
     return 'no-camera'
   }
+
   return 'start-failed'
 }
 
 async function stopScannerInstance(scanner: Html5Qrcode | null) {
   if (!scanner) return
-  // html5-qrcode starts the video element asynchronously. Give its play()
-  // promise a chance to settle before stop() removes the media element.
+
   await new Promise((resolve) => setTimeout(resolve, 120))
+
   try {
     await scanner.stop()
   } catch {
     // The scanner may not have reached its running state yet.
   }
+
   try {
     scanner.clear()
   } catch {
@@ -91,14 +101,19 @@ export default function QrScanner({
   const scannerRef = useRef<Html5Qrcode | null>(null)
   const scannerStartRef = useRef<Promise<unknown> | null>(null)
   const decodedRef = useRef(false)
+
   const [manualValue, setManualValue] = useState('')
-  const [status, setStatus] = useState<ScannerStatus>(active ? 'starting' : 'idle')
+  const [status, setStatus] = useState<ScannerStatus>(
+    active ? 'starting' : 'idle',
+  )
   const [errorMessage, setErrorMessage] = useState('')
   const [retryCount, setRetryCount] = useState(0)
+
   const copy = { ...DEFAULT_LABELS, ...labels }
 
   const stopScanner = useCallback(async () => {
     const pendingStart = scannerStartRef.current
+
     if (pendingStart) {
       try {
         await pendingStart
@@ -109,13 +124,16 @@ export default function QrScanner({
 
     const scanner = scannerRef.current
     scannerRef.current = null
+
     await stopScannerInstance(scanner)
   }, [])
 
   const handleValue = useCallback(
     (rawValue: unknown) => {
       const value = String(rawValue || '').trim()
+
       let valid = Boolean(value)
+
       try {
         valid = valid && validate(value)
       } catch {
@@ -129,9 +147,12 @@ export default function QrScanner({
       }
 
       if (decodedRef.current) return true
+
       decodedRef.current = true
       setStatus('decoded')
+
       void stopScanner().finally(() => onValue(value))
+
       return true
     },
     [copy.invalid, invalidMessage, onValue, stopScanner, validate],
@@ -144,6 +165,7 @@ export default function QrScanner({
     if (!active || !showCamera) {
       setStatus('idle')
       void stopScanner()
+
       return () => {
         alive = false
         void stopScanner()
@@ -162,7 +184,9 @@ export default function QrScanner({
 
       try {
         const cameras = await Html5Qrcode.getCameras()
+
         if (!alive) return
+
         if (!cameras?.length) {
           setStatus('no-camera')
           setErrorMessage(copy.noCamera)
@@ -171,6 +195,7 @@ export default function QrScanner({
 
         const scanner = new Html5Qrcode(readerId)
         scannerRef.current = scanner
+
         const startRequest = scanner.start(
           { facingMode: 'environment' },
           {
@@ -179,13 +204,17 @@ export default function QrScanner({
             aspectRatio: 1,
           },
           (decodedText) => {
-            if (alive) handleValue(decodedText)
+            if (alive) {
+              handleValue(decodedText)
+            }
           },
           () => {
             // Per-frame decode misses are expected and should not interrupt scanning.
           },
         )
+
         scannerStartRef.current = startRequest
+
         try {
           await startRequest
         } finally {
@@ -198,22 +227,28 @@ export default function QrScanner({
           await stopScannerInstance(scanner)
           return
         }
+
         setStatus('ready')
       } catch (error) {
         if (!alive) return
+
         await stopScanner()
+
         const kind = errorKind(error)
+
         const kindMessages: Record<CameraErrorKind, string> = {
           'permission-denied': copy.permissionDenied,
           'no-camera': copy.noCamera,
           'start-failed': copy.startFailed,
         }
+
         setStatus(kind)
         setErrorMessage(kindMessages[kind] || copy.startFailed)
       }
     }
 
     void startCamera()
+
     return () => {
       alive = false
       void stopScanner()
@@ -230,11 +265,6 @@ export default function QrScanner({
     showCamera,
   ])
 
-  function handleManualSubmit(event: FormEvent) {
-    event.preventDefault()
-    handleValue(manualValue)
-  }
-
   function retryCamera() {
     decodedRef.current = false
     setManualValue('')
@@ -242,17 +272,25 @@ export default function QrScanner({
     setRetryCount((count) => count + 1)
   }
 
-  const canRetry = ['permission-denied', 'no-camera', 'unsupported', 'start-failed', 'invalid'].includes(
-    status,
-  )
+  const canRetry = [
+    'permission-denied',
+    'no-camera',
+    'unsupported',
+    'start-failed',
+    'invalid',
+  ].includes(status)
 
   return (
     <section className="batwa-qr-scanner" aria-label={copy.qrLabel}>
       {showCamera && (
         <>
-          <p className="batwa-scanner-instruction">{copy.instruction}</p>
+          <p className="batwa-scanner-instruction">
+            {copy.instruction}
+          </p>
+
           <div className="batwa-qr-reader-wrap">
             <div id={readerId} className="batwa-qr-reader" />
+
             {status === 'starting' && (
               <div className="batwa-reader-overlay">
                 <LoadingState title={copy.cameraStarting} />
@@ -260,15 +298,25 @@ export default function QrScanner({
             )}
           </div>
 
-          {status === 'ready' && <p className="batwa-scanner-ready">{copy.cameraReady}</p>}
+          {status === 'ready' && (
+            <p className="batwa-scanner-ready">
+              {copy.cameraReady}
+            </p>
+          )}
+
           {errorMessage && status !== 'starting' && (
             <StatusPanel
               variant={status === 'invalid' ? 'warning' : 'error'}
-              title={status === 'invalid' ? copy.qrNotRecognised : copy.cameraUnavailable}
+              title={
+                status === 'invalid'
+                  ? copy.qrNotRecognised
+                  : copy.cameraUnavailable
+              }
             >
               <p>{errorMessage}</p>
             </StatusPanel>
           )}
+
           {canRetry && (
             <Button variant="quiet" onClick={retryCamera}>
               {copy.retryCamera}
@@ -278,24 +326,29 @@ export default function QrScanner({
       )}
 
       <div className="batwa-manual-entry">
-        {showCamera && <div className="batwa-divider"><span>{copy.or}</span></div>}
-        <form onSubmit={handleManualSubmit}>
-          <FormField id="manual-card-id" label={copy.manualLabel} hint={copy.manualHint}>
-            <input
-              type="text"
-              value={manualValue}
-              onChange={(event) => setManualValue(event.target.value)}
-              placeholder={copy.manualPlaceholder}
-              autoComplete="off"
-              spellCheck="false"
-              autoCapitalize="characters"
-            />
-          </FormField>
-          <Button variant="secondary" type="submit" disabled={!manualValue.trim()}>
-            {copy.useCard}
-          </Button>
-        </form>
-      </div>
+  {showCamera && <div className="batwa-divider"><span>{copy.or}</span></div>}
+  <div>
+    <FormField id="manual-card-id" label={copy.manualLabel} hint={copy.manualHint}>
+      <input
+        type="text"
+        value={manualValue}
+        onChange={(event) => setManualValue(event.target.value)}
+        placeholder={copy.manualPlaceholder}
+        autoComplete="off"
+        spellCheck="false"
+        autoCapitalize="characters"
+      />
+    </FormField>
+    <Button
+      variant="secondary"
+      type="button"
+      disabled={!manualValue.trim()}
+      onClick={() => handleValue(manualValue)}
+    >
+      {copy.useCard}
+    </Button>
+  </div>
+</div>
     </section>
   )
 }
