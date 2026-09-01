@@ -211,6 +211,10 @@ h1, h2, h3, p { overflow-wrap: anywhere; }
 }
 
 .landing-topbar { position: relative; z-index: 3; }
+.landing-topbar-tools { display: flex; align-items: center; gap: 0.65rem; }
+.landing-topbar .language-trigger { border-color: rgb(8 42 69 / 18%); color: var(--hero-ink); }
+.landing-topbar .language-trigger:hover { background: rgb(255 255 255 / 35%); color: var(--hero-ink); }
+.landing-topbar .language-popover { top: calc(100% + 0.5rem); bottom: auto; }
 
 .landing-page::before {
   background:
@@ -317,6 +321,7 @@ h1, h2, h3, p { overflow-wrap: anywhere; }
   .landing-step-rule { top: 4.25rem; right: -0.3rem; width: 0.6rem; }
   .landing-topbar .batwa-brand-wordmark { font-size: 2.3rem; }
   .landing-topbar .batwa-brand-sublabel { font-size: 0.78rem; }
+  .landing-topbar-tools { width: 100%; justify-content: flex-end; }
 }
 
 /* Shared internal workspace: one operational shell for Agent and Merchant. */
