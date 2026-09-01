@@ -13,6 +13,18 @@
 
 Batwa is a working simulation of an assisted-payment network. An Agent creates and loads customer cards, a Merchant accepts payments, and an Admin sees the transaction stream as it happens.
 
+## Progress
+
+| Feature | Owner | Status | Details |
+|---|---|---|---|
+| Core API | Harsh | ✅ Complete | FastAPI + SQLite transactions |
+| Frontend Shell | Atharva | ✅ Complete | React Router 7 + Auth Guards |
+| Payment receipt | Ruchir | ✅ Complete | Print-friendly receipt on merchant success screen |
+| Pre-demo warm-up | Harsh | ✅ Complete | `scripts/warmup.py` — 9/9 endpoints, cold-start handling |
+| Architecture diagram | Harsh | ✅ Complete | `docs/architecture.png` + README |
+| Integration tests | Harsh + Atharva | ✅ Complete | 41 backend + 19 frontend tests passing |
+| **Deployment** | **Atharva** | **✅ Complete** | Backend live at [batwa-xrt4.onrender.com](https://batwa-xrt4.onrender.com), Frontend pending |
+
 ## The Problem
 
 Many people are excluded from digital payments because they do not own a smartphone or bank account. Cash is familiar, but it is difficult to track, easy to lose, and cannot provide the simple audit trail that digital systems can.
@@ -235,13 +247,25 @@ POST /cards/reissue
 Body: { "customer_id" }
 ```
 
-### Balance and History
-
+### Transaction History
 ```text
-GET /wallet/balance/{customer_id}
 GET /transactions?customer_id=&agent_id=&merchant_id=
+Headers: Authorization: Bearer <token>
+Returns: { "transactions": [ { "txn_id", "type", "amount", "status", "timestamp", ... } ] }
+```
+
+### Admin Authentication
+```text
 POST /admin/auth
+Body: { "pin" }
+Returns: { "access_token", "token_type", "expires_in" }
+```
+
+### Admin Statistics
+```text
 GET /admin/stats
+Headers: Authorization: Bearer <token>
+Returns: aggregate balances, card counts, customer count, and transaction count
 ```
 
 The Admin dashboard refreshes its totals and transaction feed every five seconds.

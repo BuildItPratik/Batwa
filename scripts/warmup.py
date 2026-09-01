@@ -81,9 +81,10 @@ def post(path: str, body: dict) -> tuple[dict, int]:
             return {"_raw": raw.decode(errors="replace"), "_error": True}, e.code
 
 
-def get(path: str) -> tuple[dict, int]:
+def get(path: str, headers: dict = None) -> tuple[dict, int]:
     """GET -> (response_body, status_code)."""
-    req = urllib.request.Request(f"{BASE}{path}", method="GET")
+    req_headers = headers or {}
+    req = urllib.request.Request(f"{BASE}{path}", method="GET", headers=req_headers)
     try:
         resp = urllib.request.urlopen(req, timeout=TIMEOUT)
         return json.loads(resp.read()), resp.status
@@ -206,8 +207,20 @@ def warm():
         fail("POST /cards/reissue", str(body))
         results.append(False)
 
-    # 7. Transaction history
-    body, status = get(f"/transactions?customer_id={cust_id}")
+    # 7. Authenticate as admin
+    body, status = post("/admin/auth", {"pin": "2468"})
+    if status == 200 and body.get("access_token"):
+        token = body["access_token"]
+        ok(f"POST /admin/auth  ->  got bearer token")
+        results.append(True)
+    else:
+        fail("POST /admin/auth", str(body))
+        results.append(False)
+        token = ""
+
+    # 8. Transaction history
+    auth_headers = {"Authorization": f"Bearer {token}"} if token else {}
+    body, status = get(f"/transactions?customer_id={cust_id}", headers=auth_headers)
     if status == 200 and isinstance(body, dict) and "transactions" in body:
         ok(f"GET  /transactions  ->  {len(body['transactions'])} records")
         results.append(True)
@@ -215,8 +228,8 @@ def warm():
         fail("GET /transactions", str(body))
         results.append(False)
 
-    # 8. Admin stats
-    body, status = get("/admin/stats")
+    # 9. Admin stats
+    body, status = get("/admin/stats", headers=auth_headers)
     if status == 200:
         ok(f"GET  /admin/stats  →  {body}")
         results.append(True)
