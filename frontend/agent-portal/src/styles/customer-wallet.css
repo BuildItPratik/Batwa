@@ -1,0 +1,253 @@
+.customer-wallet-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* -------------------------------------------------
+   Search / lookup
+------------------------------------------------- */
+
+.customer-wallet-panel .batwa-form {
+  width: 100%;
+  max-width: 760px;
+}
+
+.customer-wallet-panel .batwa-form > .batwa-button {
+  width: fit-content;
+}
+
+/* -------------------------------------------------
+   Balance summary
+------------------------------------------------- */
+
+.customer-wallet-summary {
+  width: 100%;
+  margin-top: 0.25rem;
+}
+
+.customer-wallet-summary .batwa-result-card {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.customer-wallet-summary .result-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr 1fr;
+  gap: 1rem;
+  width: 100%;
+}
+
+.customer-wallet-summary .result-grid > div {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--batwa-border);
+  border-radius: var(--batwa-radius-md);
+  background: var(--batwa-paper-deep);
+  box-sizing: border-box;
+}
+
+.customer-wallet-summary .result-grid span {
+  color: var(--batwa-ink-muted);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.customer-wallet-summary .result-grid strong {
+  color: var(--batwa-indigo);
+  font-size: 1.05rem;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.customer-wallet-summary .result-grid > div:nth-child(2) strong {
+  font-size: 1.7rem;
+}
+
+/* -------------------------------------------------
+   History
+------------------------------------------------- */
+
+.customer-wallet-history {
+  width: 100%;
+  margin-top: 0.25rem;
+}
+
+.customer-wallet-history .form-section-heading {
+  margin-bottom: 1rem;
+}
+
+/* -------------------------------------------------
+   Filters
+------------------------------------------------- */
+
+.customer-wallet-filters {
+  display: grid;
+  grid-template-columns: minmax(220px, 2fr) repeat(3, minmax(140px, 1fr));
+  gap: 0.7rem;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.customer-wallet-filters input,
+.customer-wallet-filters select {
+  width: 100%;
+  min-height: 44px;
+  box-sizing: border-box;
+  border: 1px solid var(--batwa-border);
+  border-radius: var(--batwa-radius-sm);
+  background: var(--batwa-paper);
+  color: var(--batwa-indigo);
+  padding: 0.65rem 0.75rem;
+  font: inherit;
+  font-size: 0.84rem;
+}
+
+.customer-wallet-filters input:focus,
+.customer-wallet-filters select:focus {
+  outline: 2px solid var(--batwa-turmeric);
+  outline-offset: 1px;
+}
+
+/* -------------------------------------------------
+   Transaction table
+------------------------------------------------- */
+
+.customer-wallet-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--batwa-border);
+  border-radius: var(--batwa-radius-md);
+  background: var(--batwa-paper);
+  box-shadow: var(--batwa-shadow-soft);
+}
+
+.customer-wallet-table {
+  width: 100%;
+  min-width: 720px;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.customer-wallet-table th,
+.customer-wallet-table td {
+  padding: 0.9rem 1rem;
+  border-bottom: 1px solid var(--batwa-border);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.customer-wallet-table th {
+  background: var(--batwa-paper-deep);
+  color: var(--batwa-indigo);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.customer-wallet-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.customer-wallet-table tbody tr:hover {
+  background: rgb(255 253 247 / 70%);
+}
+
+/* Column proportions */
+
+.customer-wallet-table th:nth-child(1),
+.customer-wallet-table td:nth-child(1) {
+  width: 30%;
+}
+
+.customer-wallet-table th:nth-child(2),
+.customer-wallet-table td:nth-child(2) {
+  width: 18%;
+}
+
+.customer-wallet-table th:nth-child(3),
+.customer-wallet-table td:nth-child(3) {
+  width: 22%;
+}
+
+.customer-wallet-table th:nth-child(4),
+.customer-wallet-table td:nth-child(4) {
+  width: 30%;
+}
+
+/* Transaction cell */
+
+.customer-wallet-table td strong {
+  display: block;
+  color: var(--batwa-indigo);
+  font-size: 0.86rem;
+}
+
+.customer-wallet-table td small {
+  display: block;
+  margin-top: 0.25rem;
+  color: var(--batwa-ink-muted);
+  font-size: 0.7rem;
+  overflow-wrap: anywhere;
+}
+
+/* Amount */
+
+.customer-wallet-table td:nth-child(2) {
+  white-space: nowrap;
+  font-weight: 800;
+  color: var(--batwa-indigo);
+}
+
+/* Status */
+
+.customer-wallet-table td:nth-child(3) strong {
+  display: inline-block;
+}
+
+/* Date */
+
+.customer-wallet-table td:nth-child(4) {
+  white-space: nowrap;
+  color: var(--batwa-ink-muted);
+  font-size: 0.8rem;
+}
+
+/* -------------------------------------------------
+   Responsive
+------------------------------------------------- */
+
+@media (max-width: 900px) {
+  .customer-wallet-summary .result-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .customer-wallet-filters {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .customer-wallet-filters input {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 560px) {
+  .customer-wallet-filters {
+    grid-template-columns: 1fr;
+  }
+
+  .customer-wallet-filters input {
+    grid-column: auto;
+  }
+
+  .customer-wallet-table {
+    min-width: 640px;
+  }
+}

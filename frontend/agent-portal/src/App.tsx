@@ -11,6 +11,7 @@ import AppShell from './components/ui/AppShell'
 import { LanguageProvider } from './i18n/LanguageContext'
 import { DEMO_MODE, getConfiguredMerchant } from './config/runtime'
 import type { ReactNode } from 'react'
+import CustomerWallet from './pages/CustomerWallet'
 
 function ShellPage({ children }: { children: ReactNode }) {
   return <AppShell>{children}</AppShell>
@@ -34,6 +35,7 @@ function AppRoutes() {
       <Route path="/merchant/pay" element={<ShellPage><MerchantEntry /></ShellPage>} />
       <Route path="/admin" element={<ShellPage><AdminDashboard /></ShellPage>} />
       <Route path="*" element={<ShellPage><LandingPage /></ShellPage>} />
+      <Route path="/customer/wallet" element={<ShellPage><CustomerWallet /></ShellPage>} />
     </Routes>
   )
 }
