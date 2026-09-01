@@ -6,6 +6,8 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-Python-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![Vite](https://img.shields.io/badge/Vite-8-646CFF?logo=vite&logoColor=white)](https://vite.dev/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
 > Batwa lets people make small digital payments with a printed QR card and a PIN. No smartphone, bank account, or personal device is required at the point of payment.
 
@@ -207,80 +209,14 @@ pnpm dev:backend
 
 Demo merchant switching is available at `/merchant/setup`. It stores only the selected merchant ID in browser session storage.
 
-## API Surface
+## API Surface & Technical Guides
 
-### Customer Registration
+For comprehensive technical documentation, please refer to the following guides:
 
-```text
-POST /customers/register
-Body: { "name", "phone", "pin", "language_pref" }
-Returns: { "customer_id", "card_id", "qr_code_base64", "status" }
-```
-
-`language_pref` accepts `en`, `hi`, `ta`, or `mr`.
-
-### Wallet Top-up
-
-```text
-POST /wallet/topup
-Body: { "agent_id", "card_id", "amount" }
-Returns: { "status", "new_customer_balance", "agent_float_remaining", "txn_id" }
-```
-
-### Payment
-
-```text
-POST /wallet/pay
-Body: { "merchant_id", "card_id", "amount", "pin" }
-Returns: { "status", "new_customer_balance", "txn_id", "failure_reason" }
-```
-
-Payments are limited to 100 rupees per transaction.
-
-### Card Management
-
-```text
-POST /cards/block
-Body: { "card_id" }
-
-POST /cards/reissue
-Body: { "customer_id" }
-```
-
-### Transaction History
-```text
-GET /transactions?customer_id=&agent_id=&merchant_id=
-Headers: Authorization: Bearer <token>
-Returns: { "transactions": [ { "txn_id", "type", "amount", "status", "timestamp", ... } ] }
-```
-
-### Admin Authentication
-```text
-POST /admin/auth
-Body: { "pin" }
-Returns: { "access_token", "token_type", "expires_in" }
-```
-
-### Admin Statistics
-```text
-GET /admin/stats
-Headers: Authorization: Bearer <token>
-Returns: aggregate balances, card counts, customer count, and transaction count
-```
-
-The Admin dashboard refreshes its totals and transaction feed every five seconds.
-
-### Failure Reasons
-
-```text
-WRONG_PIN
-INSUFFICIENT_BALANCE
-BLOCKED_CARD
-LIMIT_EXCEEDED
-AGENT_FLOAT_INSUFFICIENT
-CARD_NOT_FOUND
-MERCHANT_NOT_FOUND
-```
+- 📖 **[API Reference](docs/API_REFERENCE.md)**: Detailed specifications for all endpoints, request/response bodies, and failure codes.
+- 🚀 **[Deployment Guide](docs/DEPLOYMENT_GUIDE.md)**: Instructions for deploying Batwa to production using Render and Vercel.
+- 🧠 **[Project Memory](docs/MEMORY.md)**: The architectural log and historical progress tracking of the project.
+- 🎯 **[Product & Design](docs/PRODUCT.md)**: Product positioning, design principles, and accessibility constraints.
 
 ## Project Structure
 
