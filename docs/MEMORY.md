@@ -374,16 +374,16 @@ If you are an AI agent picking up this project for a team member:
 Created an idempotent warm-up script for Render free-tier cold-start handling. The script:
 
 - **Phase 1 — Wake:** Retries the health endpoint (`GET /`) for up to 60 seconds (12 × 5s) until the container is live.
-- **Phase 2 — Warm:** Exercises every API path with a throwaway customer: register → topup → pay → balance → block → reissue → transactions → admin/stats. This ensures all Python imports, SQLite connections, and bcrypt routines are hot in memory.
-- **Phase 3 — Verdict:** Prints a colour-coded go/no-go checklist (8/8 endpoints).
+- **Phase 2 — Warm:** Exercises every API path with a throwaway customer: register → topup → pay → balance → block → reissue → admin auth → transactions → admin/stats. This ensures all Python imports, SQLite connections, and bcrypt routines are hot in memory.
+- **Phase 3 — Verdict:** Prints a colour-coded go/no-go checklist (9/9 endpoints).
 
 **Usage:**
 ```bash
 python scripts/warmup.py                            # default: http://localhost:8000
-python scripts/warmup.py https://batwa.onrender.com # deployed URL
+python scripts/warmup.py https://batwa-xrt4.onrender.com # deployed URL
 ```
 
-**Tested:** 8/8 endpoints passing on localhost ✅
+**Tested:** 9/9 endpoints passing against `https://batwa-xrt4.onrender.com` ✅
 
 ### 2. QR Service Bugfix (`backend/services/qr_service.py`)
 
@@ -426,17 +426,17 @@ Performed a full codebase scan and cross-referenced against the blueprint's Defi
 | 6 | Language switch (EN/HI/TA) + voice prompts | ✅ |
 | 7 | Success/failure by color + icon + sound | ✅ |
 | 8 | Receipt (print view) after successful payment | ✅ |
-| 9 | Admin dashboard reflects transactions live | ✅ |
-| 10 | Everything deployed on public URL | ❌ Pending (Atharva) |
+| 9 | Admin dashboard reflects transactions live | ✅ (Protected by Admin Auth PIN) |
+| 10 | Everything deployed on public URL | 🟡 Backend live, Frontend pending |
 
-**Overall: 9/10 DoD items complete. Only deployment remains.**
+**Overall: 9.5/10 DoD items complete. Only frontend deployment remains.**
 
 ### Remaining for the whole team
 
-- [ ] Deploy backend to Render/Railway (Atharva)
-- [ ] Deploy frontend to Vercel (Atharva)
+- [x] Deploy backend to Render/Railway (Atharva) - Live at `batwa-xrt4.onrender.com`
+- [ ] Deploy frontend to Vercel/Render (Atharva) - Fixes applied, awaiting push.
 - [ ] Lock down CORS origins from `*` to deployed URLs (Harsh)
-- [ ] Test deployed endpoints with `scripts/warmup.py` (Harsh + Atharva)
+- [x] Test deployed endpoints with `scripts/warmup.py` (Harsh + Atharva) - 9/9 endpoints pass
 - [ ] Day 5 pitch slides (Ruchir)
 - [ ] Full demo rehearsal on presentation device (All)
 
@@ -454,3 +454,12 @@ Performed a full codebase scan and cross-referenced against the blueprint's Defi
 - Added `PRODUCT.md` to capture product positioning, design principles, and accessibility direction.
 - Updated admin styling/link behavior in the frontend (`refactor` commit `e7dc189`).
 - Added `.impeccable/` to `.gitignore` (`chore` commit `76d1528`).
+
+### Backend Deployment & Admin Auth Updates (Harsh)
+- Backend deployed successfully to `batwa-xrt4.onrender.com`.
+- Added `POST /admin/auth` and protected `/transactions` and `/admin/stats` using a Bearer token and PIN.
+- Verified all endpoints work against the deployed environment.
+
+### Frontend SPA Routing Fix for Deployment
+- Identified and fixed a white-screen bug caused by using standard HTML `<a>` tags for deep links in the SPA. Replaced `<a>` with React Router `<Link to="/admin">` in `LandingPage.tsx`.
+- Added `vercel.json` rewrite rules to ensure deep linking does not result in 404s when deploying the React SPA.
