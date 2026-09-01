@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import BatwaBrand from '../components/ui/BatwaBrand'
 import Icon from '../components/ui/Icon'
+import LanguageMenu from '../components/ui/LanguageMenu'
 import { useLanguage } from '../i18n/LanguageContext'
 import { joinAppPath } from '../config/appBase'
 
@@ -11,7 +12,7 @@ function StepIcon({ kind }: { kind: string }) {
 }
 
 export default function LandingPage() {
-  const { copy } = useLanguage()
+  const { copy, language, setLanguage } = useLanguage()
   const systemSteps: [string, string, string][] = [
     ['01', copy.landing.steps.card, 'card'],
     ['02', copy.landing.steps.cash, 'wallet'],
@@ -21,10 +22,13 @@ export default function LandingPage() {
     <main className="landing-page" aria-label={copy.landing.ariaLabel}>
       <div className="landing-topbar">
         <a href={joinAppPath('/')} aria-label={copy.common.returnHome}><BatwaBrand descriptor={copy.landing.descriptor} /></a>
-        <Link className="batwa-admin-link" to="/admin">
-          <Icon name="receipt" size={18} />
-          {copy.navigation.admin}
-        </Link>
+        <div className="landing-topbar-tools">
+          <LanguageMenu value={language} onChange={setLanguage} ariaLabel={copy.common.chooseLanguage} />
+          <Link className="batwa-admin-link" to="/admin">
+            <Icon name="receipt" size={18} />
+            {copy.navigation.admin}
+          </Link>
+        </div>
       </div>
       <section className="landing-stage" aria-labelledby="landing-title">
         <div className="landing-copy">

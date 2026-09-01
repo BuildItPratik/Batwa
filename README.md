@@ -137,21 +137,15 @@ The frontend has one shared shell with role-aware navigation. API clients are ke
 | PIN security | `bcrypt` hashes; PINs are never printed or persisted in plaintext |
 | Receipts | Browser print layout |
 | Voice feedback | Static MP3 prompts via HTML audio |
-| Translation | Runtime API translation with local cache and English fallback |
+| Translation | Static copy catalogs for en/hi/ta/mr |
 
 ## Language Support
 
 The UI supports English, Hindi, Tamil, and Marathi across the landing page, Agent Centre, Merchant Counter, Admin Dashboard, scanner, forms, keypad, and receipts.
 
-English is the only source copy maintained in code. When another language is selected, the frontend translates the source copy at runtime through `VITE_TRANSLATION_API_URL`. The default endpoint is MyMemory. Custom endpoints must return the same MyMemory-compatible response shape. Successful translations are cached in local storage; if the endpoint is unavailable, the interface remains usable in English.
+English is the authoring language in `src/i18n/locales/en.ts`. Hindi, Tamil, and Marathi live in matching locale files and are checked for key parity in `tests/i18nCopy.test.ts`. Regenerate them after English copy changes with `python3 scripts/build-i18n-copy.py`.
 
 Marathi also includes five static voice prompts for amount entry, scanning, PIN entry, success, and failure.
-
-To use another MyMemory-compatible translation endpoint:
-
-```bash
-VITE_TRANSLATION_API_URL=https://your-translation-service.example/translate
-```
 
 ## Quick Start
 
