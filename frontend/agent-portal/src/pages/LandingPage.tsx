@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import BatwaBrand from '../components/ui/BatwaBrand'
+import Icon from '../components/ui/Icon'
 import { useLanguage } from '../i18n/LanguageContext'
 import { joinAppPath } from '../config/appBase'
 
@@ -20,8 +21,9 @@ export default function LandingPage() {
     <main className="landing-page" aria-label={copy.landing.ariaLabel}>
       <div className="landing-topbar">
         <a href={joinAppPath('/')} aria-label={copy.common.returnHome}><BatwaBrand descriptor={copy.landing.descriptor} /></a>
-        <a className="batwa-button batwa-button-secondary batwa-button-small landing-admin-button" href={joinAppPath('/admin')}>
-          {copy.landing.liveDashboard}
+        <a className="batwa-admin-link" href={joinAppPath('/admin')}>
+          <Icon name="receipt" size={18} />
+          {copy.navigation.admin}
         </a>
       </div>
       <section className="landing-stage" aria-labelledby="landing-title">

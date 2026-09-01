@@ -342,7 +342,6 @@ const en = {
     description: 'A familiar card-and-PIN way to pay safely at your local shops.',
     enterAgent: 'Enter Agent Centre',
     enterMerchant: 'Enter Merchant Counter',
-    liveDashboard: 'Admin dashboard →',
     note: 'Built for familiar, assisted payments',
     steps: {
       card: 'Get a card',
