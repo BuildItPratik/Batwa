@@ -45,7 +45,7 @@ export default function WorkspaceHeader({ pathname, role, merchant }: WorkspaceH
           <span className="workspace-identity-icon"><Icon name={ROLE_ICONS[role] || 'userPlus'} size={19} /></span>
           <span><small>{identity.name}</small><strong>{identity.id}</strong></span>
         </div>
-        {role !== 'admin' && <Link className="workspace-dashboard-link" to="/admin"><Icon name="receipt" size={18} /><span>{copy.navigation.admin}</span></Link>}
+        {role !== 'admin' && <Link className="batwa-admin-link" to="/admin"><Icon name="receipt" size={18} /><span>{copy.navigation.admin}</span></Link>}
       </div>
     </header>
   )

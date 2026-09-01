@@ -27,6 +27,7 @@ venv/
 .venv/
 env/
 .env
+.impeccable/
 
 # ── Node / Frontend ──────────────────────────────────────
 node_modules/
