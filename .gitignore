@@ -63,3 +63,4 @@ npm-debug.log*
 # ── Root-level lockfiles (stale / not needed) ─────────────
 /package-lock.json
 /frontend/package-lock.json
+/.impeccable/
