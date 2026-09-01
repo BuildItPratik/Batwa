@@ -21,10 +21,10 @@ export default function LandingPage() {
     <main className="landing-page" aria-label={copy.landing.ariaLabel}>
       <div className="landing-topbar">
         <a href={joinAppPath('/')} aria-label={copy.common.returnHome}><BatwaBrand descriptor={copy.landing.descriptor} /></a>
-        <a className="batwa-admin-link" href={joinAppPath('/admin')}>
+        <Link className="batwa-admin-link" to="/admin">
           <Icon name="receipt" size={18} />
           {copy.navigation.admin}
-        </a>
+        </Link>
       </div>
       <section className="landing-stage" aria-labelledby="landing-title">
         <div className="landing-copy">
