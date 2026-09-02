@@ -243,3 +243,7 @@ Agent Portal, Merchant Portal, atomic backend, trilingual UI, transaction audit 
 2. Offline-first merchant operation for poor-connectivity shops — queue-and-sync design?
 3. Card replacement economics — should reissue carry a fee in a real deployment?
 4. What is the agent onboarding/commission model at scale?
+
+---
+
+*Batwa is a Cognizant NPN Nurture Program hackathon project. v1 is a simulation/demo system — balances are demo money; no real bank integration or NFC hardware.*

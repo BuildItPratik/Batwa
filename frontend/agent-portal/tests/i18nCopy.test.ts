@@ -1,7 +1,6 @@
 import { test } from 'vitest'
 import assert from 'node:assert/strict'
 import { BASE_COPY, COPY, LANGUAGE_OPTIONS, getCopy } from '../src/i18n/copy'
-import { flattenCopy } from '../src/i18n/translationService'
 
 function collectKeyPaths(tree: object, prefix = ''): string[] {
   const paths: string[] = []
@@ -18,21 +17,23 @@ function collectKeyPaths(tree: object, prefix = ''): string[] {
   return paths.sort()
 }
 
-test('language options include Marathi and retain a synchronous English fallback', () => {
-  for (const option of LANGUAGE_OPTIONS) {
-    assert.ok(COPY[option.code], `COPY is missing language "${option.code}"`)
-  }
-  assert.equal(LANGUAGE_OPTIONS.some((option) => option.code === 'mr'), true)
-  assert.equal(getCopy('mr'), BASE_COPY)
-})
+test('every supported language carries the full copy tree', () => {
+  const englishPaths = collectKeyPaths(BASE_COPY)
+  assert.ok(englishPaths.length > 100)
 
-test('the English source tree contains non-empty string leaves', () => {
-  const paths = collectKeyPaths(BASE_COPY)
-  assert.ok(paths.length > 100)
-  assert.equal(new Set(flattenCopy(BASE_COPY).keys()).size, flattenCopy(BASE_COPY).size)
+  for (const option of LANGUAGE_OPTIONS) {
+    const localePaths = collectKeyPaths(COPY[option.code])
+    assert.deepEqual(localePaths, englishPaths, `${option.code} keys must match English`)
+  }
 })
 
 test('unknown languages fall back to English', () => {
   assert.equal(getCopy('xx'), COPY.en)
   assert.equal(getCopy(), COPY.en)
+})
+
+test('non-English locales are not identical to English', () => {
+  assert.notEqual(COPY.hi.common.back, COPY.en.common.back)
+  assert.notEqual(COPY.ta.common.back, COPY.en.common.back)
+  assert.notEqual(COPY.mr.common.back, COPY.en.common.back)
 })
