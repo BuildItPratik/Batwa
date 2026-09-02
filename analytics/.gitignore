@@ -1,0 +1,18 @@
+# Batwa analytics add-on — runtime artifacts are regenerated, never committed.
+
+# Python / tooling (also covered by root .gitignore)
+.venv/
+__pycache__/
+.pytest_cache/
+
+# DuckDB warehouse
+warehouse/
+*.duckdb
+*.duckdb.wal
+*.duckdb.tmp
+
+# Generated outputs (CSV / Markdown / Parquet)
+outputs/
+
+# Generated synthetic operational source (rebuilt by pipeline/demo_data.py)
+sampledata/

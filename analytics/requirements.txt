@@ -1,0 +1,7 @@
+# Batwa Analytics — data-engineering add-on
+#
+# Runtime dependency for the ELT pipeline is a single wheel: duckdb.
+# pytest is used only by the test suite under tests/.
+
+duckdb>=1.0
+pytest>=8.0
