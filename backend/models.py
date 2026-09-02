@@ -145,3 +145,61 @@ class IssuedCardsResponse(BaseModel):
     total: int
     active_cards: int
     blocked_cards: int
+
+
+# ── Analytics (offline pipeline artifacts served read-only) ──────────────
+
+class AnalyticsKpis(BaseModel):
+    """Single row of analytics/outputs/kpis_overview.csv."""
+    cash_digitized: float
+    payments_received: float
+    txn_count: int
+    success_count: int
+    failed_count: int
+    active_customers: int
+    active_cards: int
+    blocked_cards: int
+    first_txn_date: Optional[str] = None
+    last_txn_date: Optional[str] = None
+
+
+class AnalyticsDailyVolumeRow(BaseModel):
+    date_key: str
+    type: str
+    status: str
+    txn_count: int
+    amount_total: float
+
+
+class AnalyticsFailureReasonRow(BaseModel):
+    failure_reason: Optional[str] = None
+    attempts: int
+    pct_of_failures: float
+
+
+class AnalyticsTopMerchantRow(BaseModel):
+    merchant_name: str
+    payments: int
+    total_received: float
+
+
+class AnalyticsQualityChecks(BaseModel):
+    passed: int
+    total: int
+    ok: Optional[bool] = None
+
+
+class AnalyticsRunStatus(BaseModel):
+    run_id: str
+    source: str
+    ran_at: str
+    quality_checks: AnalyticsQualityChecks
+
+
+class AnalyticsResponse(BaseModel):
+    kpis: AnalyticsKpis
+    daily_volume: List[AnalyticsDailyVolumeRow]
+    failure_by_reason: List[AnalyticsFailureReasonRow]
+    top_merchants: List[AnalyticsTopMerchantRow]
+    run_status: Optional[AnalyticsRunStatus] = None
+

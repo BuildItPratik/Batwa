@@ -236,6 +236,40 @@ Returns aggregated live totals for the admin dashboard.
 }
 ```
 
+### Get Analytics (Admin Only)
+Returns the **live** KPIs and tables computed on each request from the operational database (`batwa.db`) — the analytics dashboard polls this endpoint and reflects new top-ups/payments within a poll cycle. It does **not** require the offline pipeline (`analytics/run.py all`) or its `analytics/outputs/` artifacts. The SQL mirrors the pipeline's gold-layer definitions, so live numbers and a fresh pipeline run agree. `run_status` is `null` because no offline run feeds this live view; the offline pipeline remains a separate data-engineering add-on and still publishes its curated CSV/Parquet reports.
+
+**Endpoint:** `GET /admin/analytics`
+**Headers:** `Authorization: Bearer <token>`
+
+**Response:**
+```json
+{
+  "kpis": {
+    "cash_digitized": "number",
+    "payments_received": "number",
+    "txn_count": "integer",
+    "success_count": "integer",
+    "failed_count": "integer",
+    "active_customers": "integer",
+    "active_cards": "integer",
+    "blocked_cards": "integer",
+    "first_txn_date": "string (YYYY-MM-DD) | null",
+    "last_txn_date": "string (YYYY-MM-DD) | null"
+  },
+  "daily_volume": [
+    { "date_key": "string", "type": "TOPUP|PAYMENT|REISSUE|BLOCK", "status": "SUCCESS|FAILED", "txn_count": "integer", "amount_total": "number" }
+  ],
+  "failure_by_reason": [
+    { "failure_reason": "string | null", "attempts": "integer", "pct_of_failures": "number" }
+  ],
+  "top_merchants": [
+    { "merchant_name": "string", "payments": "integer", "total_received": "number" }
+  ],
+  "run_status": null
+}
+```
+
 ---
 
 ## Failure Reasons

@@ -63,6 +63,61 @@ export interface IssuedCardsResponse {
   blocked_cards: number
 }
 
+// Shapes mirror backend/models.py (Analytics*) — the CSV artifacts published
+// by the offline analytics pipeline (analytics/run.py all).
+
+export interface AnalyticsKpis {
+  cash_digitized: number
+  payments_received: number
+  txn_count: number
+  success_count: number
+  failed_count: number
+  active_customers: number
+  active_cards: number
+  blocked_cards: number
+  first_txn_date: string | null
+  last_txn_date: string | null
+}
+
+export interface AnalyticsDailyVolumeRow {
+  date_key: string
+  type: TransactionType
+  status: TransactionStatus
+  txn_count: number
+  amount_total: number
+}
+
+export interface AnalyticsFailureReasonRow {
+  failure_reason: string | null
+  attempts: number
+  pct_of_failures: number
+}
+
+export interface AnalyticsTopMerchantRow {
+  merchant_name: string
+  payments: number
+  total_received: number
+}
+
+export interface AnalyticsRunStatus {
+  run_id: string
+  source: string
+  ran_at: string
+  quality_checks: {
+    passed: number
+    total: number
+    ok: boolean | null
+  }
+}
+
+export interface AnalyticsResponse {
+  kpis: AnalyticsKpis
+  daily_volume: AnalyticsDailyVolumeRow[]
+  failure_by_reason: AnalyticsFailureReasonRow[]
+  top_merchants: AnalyticsTopMerchantRow[]
+  run_status: AnalyticsRunStatus | null
+}
+
 async function get<T>(path: string, token?: string): Promise<T> {
   let response: Response
   try {
@@ -146,4 +201,8 @@ export function getAdminStats(token?: string): Promise<AdminStats> {
 export function getIssuedCards(params?: { status?: 'active' | 'blocked' }, token?: string): Promise<IssuedCardsResponse> {
   const qs = params?.status ? `?status=${params.status}` : ''
   return get<IssuedCardsResponse>(`/admin/cards${qs}`, token)
+}
+
+export function getAnalytics(token?: string): Promise<AnalyticsResponse> {
+  return get<AnalyticsResponse>('/admin/analytics', token)
 }

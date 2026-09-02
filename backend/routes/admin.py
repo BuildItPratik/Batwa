@@ -3,6 +3,7 @@ Batwa — Admin Routes
 POST /admin/auth
 GET /admin/stats
 GET /admin/cards
+GET /admin/analytics
 
 Read-only aggregates for the Admin dashboard (Ruchir).
 Additive endpoints — no Section 6 contract shapes were changed.
@@ -11,9 +12,13 @@ See the root README for the public API overview.
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from typing import Optional
-from models import AdminAuthRequest, AdminAuthResponse, AdminStatsResponse, IssuedCardItem, IssuedCardsResponse
+from models import (
+    AdminAuthRequest, AdminAuthResponse, AdminStatsResponse,
+    IssuedCardItem, IssuedCardsResponse, AnalyticsResponse,
+)
 from database import get_db_readonly
 from services.admin_auth import AdminAuthError, issue_admin_token, require_admin
+from services.analytics_live import compute_live_analytics
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
 
@@ -132,3 +137,16 @@ def list_issued_cards(
         active_cards=counts["active"] or 0,
         blocked_cards=counts["blocked"] or 0,
     )
+
+
+@router.get("/analytics", response_model=AnalyticsResponse)
+def get_analytics(_: None = Depends(require_admin)):
+    """Live KPIs and tables computed from the operational database.
+
+    Unlike /admin/stats this answers the analytics dashboard's full payload
+    (daily volume, failure reasons, top merchants) directly from SQLite on
+    every request, so the page reflects new transactions within a poll cycle.
+    No offline analytics run (``analytics/run.py``) is required.
+    """
+    with get_db_readonly() as conn:
+        return AnalyticsResponse(**compute_live_analytics(conn))
