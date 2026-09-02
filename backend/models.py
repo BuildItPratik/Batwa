@@ -125,3 +125,23 @@ class AdminStatsResponse(BaseModel):
     blocked_cards: int
     total_customers: int
     total_transactions: int
+
+
+# ── Issued Cards (admin-only listing) ───────────────────────────────────
+
+class IssuedCardItem(BaseModel):
+    card_id: str
+    customer_id: str
+    customer_name: Optional[str] = None
+    phone: Optional[str] = None
+    status: str
+    balance: float
+    language_pref: str
+    created_at: Optional[str] = None
+
+
+class IssuedCardsResponse(BaseModel):
+    cards: List[IssuedCardItem]
+    total: int
+    active_cards: int
+    blocked_cards: int
