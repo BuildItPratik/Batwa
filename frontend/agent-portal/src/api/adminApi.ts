@@ -45,6 +45,24 @@ export interface AdminStats {
   total_transactions: number
 }
 
+export interface IssuedCard {
+  card_id: string
+  customer_id: string
+  customer_name: string | null
+  phone: string | null
+  status: 'active' | 'blocked' | string
+  balance: number
+  language_pref: string
+  created_at: string | null
+}
+
+export interface IssuedCardsResponse {
+  cards: IssuedCard[]
+  total: number
+  active_cards: number
+  blocked_cards: number
+}
+
 async function get<T>(path: string, token?: string): Promise<T> {
   let response: Response
   try {
@@ -123,4 +141,9 @@ export function getTransactions(token?: string): Promise<TransactionsResponse> {
 
 export function getAdminStats(token?: string): Promise<AdminStats> {
   return get<AdminStats>('/admin/stats', token)
+}
+
+export function getIssuedCards(params?: { status?: 'active' | 'blocked' }, token?: string): Promise<IssuedCardsResponse> {
+  const qs = params?.status ? `?status=${params.status}` : ''
+  return get<IssuedCardsResponse>(`/admin/cards${qs}`, token)
 }

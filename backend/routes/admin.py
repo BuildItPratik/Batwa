@@ -2,14 +2,16 @@
 Batwa — Admin Routes
 POST /admin/auth
 GET /admin/stats
+GET /admin/cards
 
 Read-only aggregates for the Admin dashboard (Ruchir).
-Additive endpoint — no Section 6 contract shapes were changed.
+Additive endpoints — no Section 6 contract shapes were changed.
 See the root README for the public API overview.
 """
 
-from fastapi import APIRouter, Depends, HTTPException
-from models import AdminAuthRequest, AdminAuthResponse, AdminStatsResponse
+from fastapi import APIRouter, Depends, HTTPException, Query
+from typing import Optional
+from models import AdminAuthRequest, AdminAuthResponse, AdminStatsResponse, IssuedCardItem, IssuedCardsResponse
 from database import get_db_readonly
 from services.admin_auth import AdminAuthError, issue_admin_token, require_admin
 
@@ -67,4 +69,66 @@ def get_stats(_: None = Depends(require_admin)):
         blocked_cards=card_counts["blocked"] or 0,
         total_customers=total_customers,
         total_transactions=total_transactions,
+    )
+
+
+@router.get("/cards", response_model=IssuedCardsResponse)
+def list_issued_cards(
+    status: Optional[str] = Query(None, pattern=r"^(active|blocked)$"),
+    _: None = Depends(require_admin),
+):
+    """All QR cards ever issued, newest first — with holder and wallet context.
+
+    Optional filter:
+      ?status=active  — only cards currently usable for payment
+      ?status=blocked — lost / reissued / manually blocked
+    """
+    base_query = """
+        SELECT
+            c.card_id,
+            c.customer_id,
+            c.status,
+            c.created_at,
+            cu.name  AS customer_name,
+            cu.phone AS phone,
+            cu.balance AS balance,
+            cu.language_pref AS language_pref
+        FROM cards c
+        JOIN customers cu ON cu.customer_id = c.customer_id
+    """
+    params: list = []
+    if status:
+        base_query += " WHERE c.status = ?"
+        params.append(status)
+    base_query += " ORDER BY c.created_at DESC, c.rowid DESC"
+
+    with get_db_readonly() as conn:
+        rows = conn.execute(base_query, params).fetchall()
+        counts = conn.execute(
+            "SELECT"
+            " SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END) AS active,"
+            " SUM(CASE WHEN status = 'blocked' THEN 1 ELSE 0 END) AS blocked,"
+            " COUNT(*) AS total"
+            " FROM cards"
+        ).fetchone()
+
+    cards = [
+        IssuedCardItem(
+            card_id=row["card_id"],
+            customer_id=row["customer_id"],
+            customer_name=row["customer_name"],
+            phone=row["phone"],
+            status=row["status"],
+            balance=row["balance"] if row["balance"] is not None else 0.0,
+            language_pref=row["language_pref"] or "en",
+            created_at=row["created_at"] or "",
+        )
+        for row in rows
+    ]
+
+    return IssuedCardsResponse(
+        cards=cards,
+        total=counts["total"] or 0,
+        active_cards=counts["active"] or 0,
+        blocked_cards=counts["blocked"] or 0,
     )

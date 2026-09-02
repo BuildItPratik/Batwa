@@ -42,6 +42,7 @@ export default function WorkspaceSidebar({ role, language, onLanguageChange, dem
   const items = NAV_ITEMS[role] || NAV_ITEMS.agent
   const location = useLocation()
 
+  const isAdmin = role === 'admin'
   return (
     <aside className="workspace-sidebar" aria-label={`${copy.workspace[role]} navigation`}>
       <div className="workspace-sidebar-brand">
@@ -50,7 +51,7 @@ export default function WorkspaceSidebar({ role, language, onLanguageChange, dem
       </div>
       <nav className="workspace-nav">
         {items.map((item) => (
-          <NavLink className={({ isActive }) => `workspace-nav-link${(isActive || (isMerchant && location.pathname.startsWith('/merchant'))) ? ' is-active' : ''}`} end={item.end} key={item.to} to={item.to}>
+          <NavLink className={({ isActive }) => `workspace-nav-link${(isActive || (isMerchant && location.pathname.startsWith('/merchant')) || (isAdmin && location.pathname.startsWith('/admin'))) ? ' is-active' : ''}`} end={item.end} key={item.to} to={item.to}>
             <Icon name={item.icon} size={22} />
             <span>{copy.navigation[item.labelKey]}</span>
           </NavLink>

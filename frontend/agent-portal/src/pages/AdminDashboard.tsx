@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
+import { Link } from 'react-router-dom'
 import { useLanguage } from '../i18n/LanguageContext'
 import { AdminApiError, authenticateAdmin, clearAdminToken, getAdminStats, getAdminToken, getTransactions, type AdminStats, type TransactionItem } from '../api/adminApi'
 import type { FailureCopy } from '../i18n/copy'
@@ -152,14 +153,35 @@ export default function AdminDashboard() {
       {failed && <StatusPanel variant="error" title={copy.admin.loadError} />}
 
       <div className="admin-totals" aria-live="polite">
-        {totals.map((total) => (
-          <article className={`admin-total-card admin-total-${total.key}`} key={total.key}>
-            <span className="admin-total-icon"><Icon name={total.icon} size={24} /></span>
-            <strong>{total.value ?? '…'}</strong>
-            <span className="admin-total-label">{copy.admin[total.key]}</span>
-          </article>
-        ))}
+        {totals.map((total) => {
+          const isCardStat = total.key === 'activeCards' || total.key === 'blockedCards'
+          const card = (
+            <>
+              <span className="admin-total-icon"><Icon name={total.icon} size={24} /></span>
+              <strong>{total.value ?? '…'}</strong>
+              <span className="admin-total-label">{copy.admin[total.key]}</span>
+              {isCardStat && <span className="admin-total-link"><Icon name="arrowRight" size={14} /> {copy.admin.viewCards}</span>}
+            </>
+          )
+          return isCardStat ? (
+            <Link to="/admin/cards" className={`admin-total-card admin-total-${total.key} is-clickable`} key={total.key} aria-label={`${copy.admin[total.key]} — ${copy.admin.viewCards}`}>
+              {card}
+            </Link>
+          ) : (
+            <article className={`admin-total-card admin-total-${total.key}`} key={total.key}>
+              {card}
+            </article>
+          )
+        })}
       </div>
+
+      <Link to="/admin/cards" className="admin-view-cards-banner">
+        <span className="admin-view-cards-icon"><Icon name="card" size={20} /></span>
+        <span>
+          <strong>{copy.admin.viewCards} <Icon name="arrowRight" size={14} /></strong>
+          <small>{copy.admin.viewCardsHint}{stats ? ` · ${stats.active_cards} ${copy.admin.filterActive.toLowerCase()} · ${stats.blocked_cards} ${copy.admin.filterBlocked.toLowerCase()}` : ''}</small>
+        </span>
+      </Link>
 
       <section className="admin-feed" aria-label={copy.admin.feedTitle}>
         <h2>{copy.admin.feedTitle}</h2>

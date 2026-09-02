@@ -7,6 +7,7 @@ import LandingPage from './pages/LandingPage'
 import MerchantPortal from './pages/MerchantPortal'
 import MerchantSetup from './pages/MerchantSetup'
 import AdminDashboard from './pages/AdminDashboard'
+import AdminCards from './pages/AdminCards'
 import AppShell from './components/ui/AppShell'
 import { LanguageProvider } from './i18n/LanguageContext'
 import { DEMO_MODE, getConfiguredMerchant } from './config/runtime'
@@ -33,6 +34,7 @@ function AppRoutes() {
       <Route path="/merchant" element={<ShellPage>{DEMO_MODE ? <MerchantSetup /> : <MerchantEntry />}</ShellPage>} />
       <Route path="/merchant/pay" element={<ShellPage><MerchantEntry /></ShellPage>} />
       <Route path="/admin" element={<ShellPage><AdminDashboard /></ShellPage>} />
+      <Route path="/admin/cards" element={<ShellPage><AdminCards /></ShellPage>} />
       <Route path="*" element={<ShellPage><LandingPage /></ShellPage>} />
     </Routes>
   )
